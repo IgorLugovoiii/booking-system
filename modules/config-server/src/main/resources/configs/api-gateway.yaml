@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Gateway автоматично підключає сервіси з Eureka
+          lower-case-service-id: true
+
+      routes:
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
