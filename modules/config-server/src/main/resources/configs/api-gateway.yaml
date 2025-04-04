@@ -10,6 +10,10 @@ spring:
           lower-case-service-id: true
 
       routes:
+        - id: booking-service
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/bookings/**
 
 eureka:
   client:
