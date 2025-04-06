@@ -18,6 +18,7 @@
         <module>modules/inventory-service</module>
         <module>modules/notification-service</module>
         <module>modules/payment-service</module>
+        <module>modules/auth-service</module>
     </modules>
 
 </project>
