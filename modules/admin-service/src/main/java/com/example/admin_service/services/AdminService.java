@@ -12,23 +12,25 @@ import java.util.List;
 @Service
 public class AdminService {
     private final AuthServiceClient authServiceClient;
+
     @Autowired
-    public AdminService(AuthServiceClient authServiceClient){
+    public AdminService(AuthServiceClient authServiceClient) {
         this.authServiceClient = authServiceClient;
     }
 
     @Transactional(readOnly = true)
-    public List<UserDto> getAllUsers(){
+    public List<UserDto> getAllUsers() {
         return authServiceClient.getAllUsers();
     }
 
     @Transactional
-    public void updateUserRole(Long id, UpdateRoleRequest updateRoleRequest){
+    public void updateUserRole(Long id, UpdateRoleRequest updateRoleRequest) {
         authServiceClient.updateUserRole(id, updateRoleRequest);
+
     }
 
     @Transactional
-    public void deleteUserById(Long id){
+    public void deleteUserById(Long id) {
         authServiceClient.deleteUser(id);
     }
 }

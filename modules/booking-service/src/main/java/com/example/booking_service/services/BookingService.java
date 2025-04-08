@@ -2,6 +2,8 @@ package com.example.booking_service.services;
 
 import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
+import com.example.booking_service.kafka.BookingEvent;
+import com.example.booking_service.kafka.BookingProducer;
 import com.example.booking_service.models.Booking;
 import com.example.booking_service.models.enums.BookingStatus;
 import com.example.booking_service.repositories.BookingRepository;
@@ -16,10 +18,12 @@ import java.util.List;
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
+    private final BookingProducer bookingProducer;
 
     @Autowired
-    public BookingService(BookingRepository bookingRepository) {
+    public BookingService(BookingRepository bookingRepository, BookingProducer bookingProducer) {
         this.bookingRepository = bookingRepository;
+        this.bookingProducer = bookingProducer;
     }
 
     private BookingResponse convertToBookingResponse(Booking booking) {
@@ -43,6 +47,13 @@ public class BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
 
         Booking savedBooking = bookingRepository.save(booking);
+        bookingProducer.sendBookingCreatedEvent(new BookingEvent(
+                "booking.created",
+                booking.getId(),
+                booking.getUserId(),
+                booking.getItemId(),
+                booking.getCreatedAt()
+        ));
         return convertToBookingResponse(savedBooking);
     }
 
@@ -58,6 +69,14 @@ public class BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
 
         bookingRepository.save(booking);
+
+        bookingProducer.sendBookingCanceledEvent(new BookingEvent(
+                "booking.canceled",
+                booking.getId(),
+                booking.getUserId(),
+                booking.getItemId(),
+                booking.getCreatedAt()
+        ));
     }
 
     @Transactional
@@ -81,6 +100,14 @@ public class BookingService {
         booking.setBookingDate(bookingRequest.getBookingDate());
         booking.setUpdatedAt(LocalDateTime.now());
 
+        bookingProducer.sendBookingUpdatedEvent(new BookingEvent(
+                "booking.updated",
+                booking.getId(),
+                booking.getUserId(),
+                booking.getItemId(),
+                booking.getCreatedAt()
+        ));
+
         return convertToBookingResponse(bookingRepository.save(booking));
     }
 
@@ -93,6 +120,14 @@ public class BookingService {
         }
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         booking.setUpdatedAt(LocalDateTime.now());
+
+        bookingProducer.sendBookingConfirmedEvent(new BookingEvent(
+                "booking.confirmed",
+                booking.getId(),
+                booking.getUserId(),
+                booking.getItemId(),
+                booking.getCreatedAt()
+        ));
 
         return convertToBookingResponse(bookingRepository.save(booking));
     }

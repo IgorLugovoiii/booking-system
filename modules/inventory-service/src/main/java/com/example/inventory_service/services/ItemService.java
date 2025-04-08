@@ -2,6 +2,7 @@ package com.example.inventory_service.services;
 
 import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
+import com.example.inventory_service.kafka.ItemProducer;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.repositories.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,10 +16,12 @@ import java.util.List;
 @Service
 public class ItemService {
     private final ItemRepository itemRepository;
+    private final ItemProducer itemProducer;
 
     @Autowired
-    public ItemService(ItemRepository itemRepository){
+    public ItemService(ItemRepository itemRepository, ItemProducer itemProducer){
         this.itemRepository = itemRepository;
+        this.itemProducer = itemProducer;
     }
 
     private ItemResponse convertToItemResponse(Item item){
@@ -57,6 +60,7 @@ public class ItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         itemRepository.save(item);
+        itemProducer.sendItemCreatedEvent(item.toJson());
         return convertToItemResponse(item);
     }
 
@@ -71,10 +75,12 @@ public class ItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         itemRepository.save(item);
+        itemProducer.sendItemUpdatedEvent(item.toJson());
         return convertToItemResponse(item);
     }
     @Transactional
     public void deleteById(Long id){
         itemRepository.deleteById(id);
+        itemProducer.sendItemDeletedEvent(itemRepository.findById(id).orElseThrow(EntityNotFoundException::new).toJson());
     }
 }

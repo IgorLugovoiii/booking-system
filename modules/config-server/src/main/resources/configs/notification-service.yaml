@@ -1,6 +1,20 @@
 server:
   port:8085
 
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: qeadzc4065@gmail.com
+    password: aqcl ekdm cdup gsol
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
 eureka:
   client:
     service-url:

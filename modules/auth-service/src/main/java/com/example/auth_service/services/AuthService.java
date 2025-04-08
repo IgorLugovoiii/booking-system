@@ -3,6 +3,8 @@ package com.example.auth_service.services;
 import com.example.auth_service.dtos.AuthRequest;
 import com.example.auth_service.dtos.AuthResponse;
 import com.example.auth_service.dtos.RegisterRequest;
+import com.example.auth_service.kafka.AuthProducer;
+import com.example.auth_service.kafka.UserEvent;
 import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
@@ -22,13 +24,16 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final AuthProducer authProducer;
 
     @Autowired
-    public AuthService(UserRepository userRepository, JwtUtil jwtUtil, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    public AuthService(UserRepository userRepository, JwtUtil jwtUtil, BCryptPasswordEncoder passwordEncoder,
+                       AuthenticationManager authenticationManager, AuthProducer authProducer) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.authProducer = authProducer;
     }
 
     private AuthResponse authResponse(User user){
@@ -46,6 +51,13 @@ public class AuthService {
         user.setRole(Role.USER);
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         userRepository.save(user);
+        authProducer.sendUserRegisteredEvent(new UserEvent(
+                user.getId(),
+                "user.registered",
+                user.getUsername(),
+                user.getRole().name()
+        ));
+
         return authResponse(user);
     }
 
