@@ -1,6 +1,7 @@
-package com.example.notification_service.kafka;
+package com.example.notification_service.kafka.consumers;
 
 import com.example.notification_service.dtos.NotificationRequest;
+import com.example.notification_service.kafka.events.BookingEvent;
 import com.example.notification_service.services.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,11 +33,7 @@ public class BookingEventConsumer {
             String msg = "Бронювання #" + event.getBookingId() + " для item #" + event.getItemId() +
                     " створено/оновлено/скасовано в: " + event.getBookingTime();
 
-            NotificationRequest request = new NotificationRequest();
-            request.setTo("recipient@example.com"); // Поки заглушка
-            request.setSubject(subject);
-            request.setMessage(msg);
-
+            NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com", subject, msg);// заглушка
             notificationService.sendNotification(request);
 
             System.out.println("Booking event оброблено: " + event.getEventType());

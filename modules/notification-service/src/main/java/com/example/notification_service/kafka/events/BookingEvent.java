@@ -1,4 +1,4 @@
-package com.example.notification_service.kafka;
+package com.example.notification_service.kafka.events;
 
 import lombok.Data;
 
