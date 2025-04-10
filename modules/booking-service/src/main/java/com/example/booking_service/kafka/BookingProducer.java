@@ -1,5 +1,6 @@
 package com.example.booking_service.kafka;
 
+import com.example.booking_service.exception.KafkaMessageSendException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class BookingProducer {
             String json = objectMapper.writeValueAsString(bookingEvent);
             kafkaTemplate.send(TOPIC, "booking.created", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageSendException("Failed to send booking.created event", e);
         }
     }
 
@@ -32,7 +33,7 @@ public class BookingProducer {
             String json = objectMapper.writeValueAsString(bookingEvent);
             kafkaTemplate.send(TOPIC, "booking.updated", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageSendException("Failed to send booking.updated event", e);
         }
     }
 
@@ -41,7 +42,7 @@ public class BookingProducer {
             String json = objectMapper.writeValueAsString(bookingEvent);
             kafkaTemplate.send(TOPIC, "booking.deleted", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageSendException("Failed to send booking.deleted event", e);
         }
     }
 
@@ -50,7 +51,8 @@ public class BookingProducer {
             String json = objectMapper.writeValueAsString(bookingEvent);
             kafkaTemplate.send(TOPIC, "booking.confirmed", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageSendException("Failed to send booking.confirmed event", e);
         }
     }
+
 }

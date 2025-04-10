@@ -1,6 +1,7 @@
 package com.example.notification_service.kafka.consumers;
 
 import com.example.notification_service.dtos.NotificationRequest;
+import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.BookingEvent;
 import com.example.notification_service.services.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +39,7 @@ public class BookingEventConsumer {
 
             System.out.println("Booking event оброблено: " + event.getEventType());
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageReceiveException("Failed to receive booking event" , e);
         }
     }
 }

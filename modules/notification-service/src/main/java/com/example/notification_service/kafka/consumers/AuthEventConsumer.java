@@ -1,6 +1,7 @@
 package com.example.notification_service.kafka.consumers;
 
 import com.example.notification_service.dtos.NotificationRequest;
+import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.UserEvent;
 import com.example.notification_service.services.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +41,7 @@ public class AuthEventConsumer {
             System.out.println("User event оброблено: " + userEvent.getEventType());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageReceiveException("Failed to receive user event" , e);
         }
     }
 

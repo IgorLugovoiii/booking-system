@@ -1,5 +1,6 @@
 package com.example.auth_service.kafka;
 
+import com.example.auth_service.exceptions.KafkaMessageSendException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,7 +23,7 @@ public class AuthProducer {
             String json = objectMapper.writeValueAsString(userEvent);
             kafkaTemplate.send(TOPIC, "user.role.updated", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageSendException("Failed to send user.role.updated event", e);
         }
     }
 
@@ -31,7 +32,7 @@ public class AuthProducer {
             String json = objectMapper.writeValueAsString(userEvent);
             kafkaTemplate.send(TOPIC, "user.deleted", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageSendException("Failed to send user.deleted event", e);
         }
     }
 
@@ -40,7 +41,7 @@ public class AuthProducer {
             String json = objectMapper.writeValueAsString(userEvent);
             kafkaTemplate.send(TOPIC, "user.registered", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new KafkaMessageSendException("Failed to send user.registered event", e);
         }
     }
 }
