@@ -2,6 +2,7 @@ package com.example.inventory_service.services;
 
 import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
+import com.example.inventory_service.kafka.ItemEvent;
 import com.example.inventory_service.kafka.ItemProducer;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.repositories.ItemRepository;
@@ -19,12 +20,12 @@ public class ItemService {
     private final ItemProducer itemProducer;
 
     @Autowired
-    public ItemService(ItemRepository itemRepository, ItemProducer itemProducer){
+    public ItemService(ItemRepository itemRepository, ItemProducer itemProducer) {
         this.itemRepository = itemRepository;
         this.itemProducer = itemProducer;
     }
 
-    private ItemResponse convertToItemResponse(Item item){
+    private ItemResponse convertToItemResponse(Item item) {
         ItemResponse itemResponse = new ItemResponse();
         itemResponse.setId(item.getId());
         itemResponse.setName(item.getName());
@@ -37,19 +38,19 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ItemResponse findById(Long itemId){
+    public ItemResponse findById(Long itemId) {
         return convertToItemResponse(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
     }
 
     @Transactional(readOnly = true)
-    public List<ItemResponse> findAll(){
+    public List<ItemResponse> findAll() {
         return itemRepository.findAll().stream()
                 .map(this::convertToItemResponse)
                 .toList();
     }
 
     @Transactional
-    public ItemResponse createItem(ItemRequest itemRequest){
+    public ItemResponse createItem(ItemRequest itemRequest) {
         Item item = new Item();
         item.setName(itemRequest.getName());
         item.setDescription(itemRequest.getDescription());
@@ -60,12 +61,19 @@ public class ItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         itemRepository.save(item);
-        itemProducer.sendItemCreatedEvent(item.toJson());
+        itemProducer.sendItemCreatedEvent(
+                new ItemEvent("item.created",
+                        item.getId(),
+                        item.getName(),
+                        item.getCategory(),
+                        item.isAvailable(),
+                        item.getPrice()
+                ));
         return convertToItemResponse(item);
     }
 
     @Transactional
-    public ItemResponse updateItem(Long id, ItemRequest itemRequest){
+    public ItemResponse updateItem(Long id, ItemRequest itemRequest) {
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         item.setName(itemRequest.getName());
         item.setDescription(itemRequest.getDescription());
@@ -75,12 +83,28 @@ public class ItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         itemRepository.save(item);
-        itemProducer.sendItemUpdatedEvent(item.toJson());
+        itemProducer.sendItemUpdatedEvent(
+                new ItemEvent("item.updated",
+                        item.getId(),
+                        item.getName(),
+                        item.getCategory(),
+                        item.isAvailable(),
+                        item.getPrice()
+                ));
         return convertToItemResponse(item);
     }
+
     @Transactional
-    public void deleteById(Long id){
+    public void deleteById(Long id) {
         itemRepository.deleteById(id);
-        itemProducer.sendItemDeletedEvent(itemRepository.findById(id).orElseThrow(EntityNotFoundException::new).toJson());
+        Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        itemProducer.sendItemDeletedEvent(
+                new ItemEvent("item.deleted",
+                        item.getId(),
+                        item.getName(),
+                        item.getCategory(),
+                        item.isAvailable(),
+                        item.getPrice()
+                ));
     }
 }
