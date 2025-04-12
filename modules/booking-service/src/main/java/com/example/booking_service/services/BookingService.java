@@ -62,7 +62,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new IllegalStateException("Booking already cancelled");
+            throw new IllegalStateException("Booking is already cancelled");
         }
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
