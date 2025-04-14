@@ -38,7 +38,7 @@ public class UserService {
     public User updateUserRole(Long id, String newRole) {
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         user.setRole(Role.valueOf(newRole));
-        authProducer.sendUserCreatedEvent(new UserEvent(
+        authProducer.sendUserRoleUpdateEvent(new UserEvent(
                 user.getId(),
                 "user.role.updated",
                 user.getUsername(),
@@ -51,7 +51,7 @@ public class UserService {
     public void deleteUserById(Long id) {
         userRepository.deleteById(id);
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        authProducer.sendUserCreatedEvent(new UserEvent(
+        authProducer.sendUserDeletedEvent(new UserEvent(
                 user.getId(),
                 "user.deleted",
                 user.getUsername(),
