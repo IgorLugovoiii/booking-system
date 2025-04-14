@@ -49,8 +49,8 @@ public class UserService {
 
     @Transactional
     public void deleteUserById(Long id) {
-        userRepository.deleteById(id);
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        userRepository.deleteById(id);
         authProducer.sendUserDeletedEvent(new UserEvent(
                 user.getId(),
                 "user.deleted",
