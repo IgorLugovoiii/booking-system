@@ -4,6 +4,7 @@ import com.example.auth_service.dtos.AuthRequest;
 import com.example.auth_service.dtos.AuthResponse;
 import com.example.auth_service.dtos.RegisterRequest;
 import com.example.auth_service.services.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +24,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registration(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<AuthResponse> registration(@RequestBody @Valid RegisterRequest registerRequest) {
         return new ResponseEntity<>(authService.registration(registerRequest), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest authRequest) {
         return new ResponseEntity<>(authService.authenticate(authRequest), HttpStatus.OK);
     }
 

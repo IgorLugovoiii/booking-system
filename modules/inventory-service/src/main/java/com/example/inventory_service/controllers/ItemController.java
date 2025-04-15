@@ -4,6 +4,7 @@ import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.services.ItemService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +33,12 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<ItemResponse> createItem(@RequestBody ItemRequest itemRequest){
+    public ResponseEntity<ItemResponse> createItem(@RequestBody @Valid ItemRequest itemRequest){
         return new ResponseEntity<>(itemService.createItem(itemRequest),HttpStatus.CREATED);
     }
 
     @PutMapping("/{itemId}")
-    public ResponseEntity<ItemResponse> updateItem(@PathVariable Long itemId, @RequestBody ItemRequest itemRequest){
+    public ResponseEntity<ItemResponse> updateItem(@PathVariable @Valid Long itemId, @RequestBody ItemRequest itemRequest){
         return new ResponseEntity<>(itemService.updateItem(itemId,itemRequest),HttpStatus.OK);
     }
 
