@@ -26,6 +26,8 @@ public class ItemServiceTest {
     private ItemRepository itemRepository;
     @Mock
     private ItemProducer itemProducer;
+    @Mock
+    private ItemCacheService itemCacheService;
     @InjectMocks
     private ItemService itemService;
 
@@ -62,6 +64,7 @@ public class ItemServiceTest {
         assertEquals(item.getName(), response.getName());
         verify(itemRepository, times(1)).save(any(Item.class));
         verify(itemProducer, times(1)).sendItemCreatedEvent(any());
+        verify(itemCacheService, times(1)).cacheItem(any());
     }
 
     @Test
@@ -75,6 +78,7 @@ public class ItemServiceTest {
         assertEquals(item.getName(), response.getName());
         verify(itemRepository, times(1)).save(any());
         verify(itemProducer, times(1)).sendItemUpdatedEvent(any());
+        verify(itemCacheService, times(1)).cacheItem(any());
     }
 
     @Test
@@ -95,6 +99,7 @@ public class ItemServiceTest {
 
     @Test
     void testDeleteItem_WhenFound() {
+        doNothing().when(itemCacheService).evictItem(1L);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         doNothing().when(itemRepository).deleteById(1L);
 
@@ -102,6 +107,7 @@ public class ItemServiceTest {
 
         verify(itemRepository, times(1)).deleteById(1L);
         verify(itemProducer, times(1)).sendItemDeletedEvent(any());
+        verify(itemCacheService).evictItem(1L);
     }
 
     @Test
@@ -113,6 +119,7 @@ public class ItemServiceTest {
 
     @Test
     void testFindById_WhenFound() {
+        when(itemCacheService.getItem(1L)).thenReturn(null);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
         ItemResponse response = itemService.findById(1L);
@@ -120,6 +127,7 @@ public class ItemServiceTest {
         assertNotNull(response);
         assertEquals(item.getName(), response.getName());
         verify(itemRepository, times(1)).findById(1L);
+        verify(itemCacheService).getItem(1L);
     }
 
     @Test

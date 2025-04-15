@@ -18,11 +18,14 @@ import java.util.List;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final ItemProducer itemProducer;
+    private final ItemCacheService itemCacheService;
 
     @Autowired
-    public ItemService(ItemRepository itemRepository, ItemProducer itemProducer) {
+    public ItemService(ItemRepository itemRepository, ItemProducer itemProducer,
+                       ItemCacheService itemCacheService) {
         this.itemRepository = itemRepository;
         this.itemProducer = itemProducer;
+        this.itemCacheService = itemCacheService;
     }
 
     private ItemResponse convertToItemResponse(Item item) {
@@ -39,7 +42,13 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public ItemResponse findById(Long itemId) {
-        return convertToItemResponse(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
+        Item cachedItem = itemCacheService.getItem(itemId);
+        if (cachedItem != null) {
+            return convertToItemResponse(cachedItem);
+        }
+        Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
+        itemCacheService.cacheItem(item);
+        return convertToItemResponse(item);
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +70,7 @@ public class ItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         itemRepository.save(item);
+        itemCacheService.cacheItem(item);
         itemProducer.sendItemCreatedEvent(
                 new ItemEvent("item.created",
                         item.getId(),
@@ -83,6 +93,7 @@ public class ItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         itemRepository.save(item);
+        itemCacheService.cacheItem(item);
         itemProducer.sendItemUpdatedEvent(
                 new ItemEvent("item.updated",
                         item.getId(),
@@ -98,6 +109,7 @@ public class ItemService {
     public void deleteById(Long id) {
         itemRepository.deleteById(id);
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        itemCacheService.evictItem(id);
         itemProducer.sendItemDeletedEvent(
                 new ItemEvent("item.deleted",
                         item.getId(),
