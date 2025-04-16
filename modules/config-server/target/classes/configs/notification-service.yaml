@@ -1,0 +1,32 @@
+server:
+  port:8085
+
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: qeadzc4065@gmail.com
+    password: aqcl ekdm cdup gsol
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  kafka:
+    consumer:
+      bootstrap-servers: kafka:9092
+      group-id: notification-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+    producer:
+      bootstrap-servers: kafka:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

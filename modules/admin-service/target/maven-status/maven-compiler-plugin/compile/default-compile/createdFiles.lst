@@ -1,0 +1,10 @@
+com\example\admin_service\AdminServiceApplication.class
+com\example\admin_service\services\AdminService.class
+com\example\admin_service\controllers\AdminController.class
+com\example\admin_service\exceptions\GlobalExceptionHandler.class
+com\example\admin_service\dtos\UpdateRoleRequest.class
+com\example\admin_service\aspects\LoggingAspect.class
+com\example\admin_service\clients\AuthServiceClient.class
+com\example\admin_service\dtos\UserDto.class
+com\example\admin_service\configs\FeignConfig.class
+com\example\admin_service\exceptions\ErrorResponse.class

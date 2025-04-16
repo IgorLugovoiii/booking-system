@@ -1,0 +1,15 @@
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\aspects\LoggingAspect.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\configs\RedisConfig.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\controllers\ItemController.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\dtos\ItemRequest.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\dtos\ItemResponse.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\exception\ErrorResponse.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\exception\GlobalExceptionHandler.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\exception\KafkaMessageSendException.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\InventoryServiceApplication.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\kafka\ItemEvent.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\kafka\ItemProducer.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\models\Item.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\repositories\ItemRepository.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\services\ItemCacheService.java
+D:\JavaProjects\booking-system\modules\inventory-service\src\main\java\com\example\inventory_service\services\ItemService.java
