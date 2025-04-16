@@ -12,6 +12,17 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+  kafka:
+    producer:
+      bootstrap-servers: kafka:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 eureka:
   client:
     service-url:

@@ -11,23 +11,22 @@ import java.time.Duration;
 @Service
 public class ItemCacheService {
     private final RedisTemplate<String, Item> redisTemplate;
-    private final ValueOperations<String, Item> valueOperations;
 
     @Autowired
-    public ItemCacheService(RedisTemplate<String, Item> redisTemplate, ValueOperations<String, Item> valueOperations) {
+    public ItemCacheService(RedisTemplate<String, Item> redisTemplate) {
         this.redisTemplate = redisTemplate;
-        this.valueOperations = redisTemplate.opsForValue();
     }
 
     public Item getItem(Long id) {
-        return valueOperations.get("item:" + id); // item: - ключ, важливо його писати правильно, без зайвих пробілів, id - це json об'єкт з певним id
+        return redisTemplate.opsForValue().get("item:" + id);
     }
 
     public void cacheItem(Item item) {
-        valueOperations.set("item:" + item.getId(), item, Duration.ofMinutes(10));
+        redisTemplate.opsForValue().set("item:" + item.getId(), item, Duration.ofMinutes(10));
     }
 
     public void evictItem(Long id) {
         redisTemplate.delete("item:" + id);
     }
 }
+

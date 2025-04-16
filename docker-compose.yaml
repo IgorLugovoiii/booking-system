@@ -1,0 +1,190 @@
+version: '3.8'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: ms_zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - microservices-net
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: ms_kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_BROKER_ID: 1
+    networks:
+      - microservices-net
+
+  postgres-booking:
+    image: postgres:14
+    container_name: postgres_booking
+    environment:
+      POSTGRES_DB: bookings2_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    networks:
+      - microservices-net
+
+  postgres-auth:
+    image: postgres:14
+    container_name: postgres_auth
+    environment:
+      POSTGRES_DB: auth_service_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    networks:
+      - microservices-net
+
+  postgres-admin:
+    image: postgres:14
+    container_name: postgres_admin
+    environment:
+      POSTGRES_DB: admin_service_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    networks:
+      - microservices-net
+
+  postgres-inventory:
+    image: postgres:14
+    container_name: postgres_inventory
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5436:5432"
+    networks:
+      - microservices-net
+
+  postgres-payment:
+    image: postgres:14
+    container_name: postgres_payment
+    environment:
+      POSTGRES_DB: payments_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5438:5432"
+    networks:
+      - microservices-net
+
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: ms_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices-net
+
+  config-server:
+    build: ./modules/config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka-server
+    networks:
+      - microservices-net
+
+  eureka-server:
+    build: ./modules/eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-net
+
+  api-gateway:
+    build: ./modules/api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - microservices-net
+
+  auth-service:
+    build: ./modules/auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+      - config-server
+    networks:
+      - microservices-net
+
+  admin-service:
+    build: ./modules/admin-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - kafka
+      - config-server
+    networks:
+      - microservices-net
+
+  booking-service:
+    build: ./modules/booking-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - kafka
+      - config-server
+    networks:
+      - microservices-net
+
+  inventory-service:
+    build: ./modules/inventory-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - kafka
+      - redis
+      - config-server
+    networks:
+      - microservices-net
+
+  notification-service:
+    build: ./modules/notification-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - kafka
+      - config-server
+    networks:
+      - microservices-net
+
+  payment-service:
+    build: ./modules/payment-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      - kafka
+      - config-server
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: bridge

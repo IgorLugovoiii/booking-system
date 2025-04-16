@@ -4,7 +4,6 @@ import com.example.inventory_service.models.Item;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,20 +16,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ItemCacheServiceTest {
+
     @Mock
     private RedisTemplate<String, Item> redisTemplate;
+
     @Mock
     private ValueOperations<String, Item> valueOperations;
-    @InjectMocks
-    private ItemCacheService itemCacheService;
 
+    private ItemCacheService itemCacheService;
     private Item item;
 
     @BeforeEach
     public void setUp() {
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-
-        itemCacheService = new ItemCacheService(redisTemplate, valueOperations);
+        itemCacheService = new ItemCacheService(redisTemplate);
 
         item = new Item();
         item.setId(1L);
@@ -39,6 +37,7 @@ public class ItemCacheServiceTest {
 
     @Test
     void testGetItem_shouldReturnItemFromCache() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("item:1")).thenReturn(item);
 
         Item result = itemCacheService.getItem(1L);
@@ -50,6 +49,8 @@ public class ItemCacheServiceTest {
 
     @Test
     void testCacheItem_shouldStoreItem() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
         itemCacheService.cacheItem(item);
 
         verify(valueOperations, times(1))

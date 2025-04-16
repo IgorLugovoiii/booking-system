@@ -9,12 +9,6 @@ spring:
       uri: http://localhost:8888
       fail-fast: true
 
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
 eureka:
   client:
     service-url:
