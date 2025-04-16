@@ -1,0 +1,15 @@
+com\example\notification_service\kafka\events\UserEvent.class
+com\example\notification_service\kafka\events\BookingEvent.class
+com\example\notification_service\NotificationServiceApplication.class
+com\example\notification_service\kafka\events\ItemEvent.class
+com\example\notification_service\kafka\events\PaymentEvent.class
+com\example\notification_service\aspects\LoggingAspect.class
+com\example\notification_service\kafka\consumers\ItemEventConsumer.class
+com\example\notification_service\services\NotificationService.class
+com\example\notification_service\kafka\consumers\AuthEventConsumer.class
+com\example\notification_service\dtos\NotificationRequest.class
+com\example\notification_service\exception\KafkaMessageReceiveException.class
+com\example\notification_service\exception\ErrorResponse.class
+com\example\notification_service\kafka\consumers\BookingEventConsumer.class
+com\example\notification_service\kafka\consumers\PaymentEventConsumer.class
+com\example\notification_service\exception\GlobalExceptionHandler.class
