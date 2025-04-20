@@ -10,10 +10,14 @@ spring:
           lower-case-service-id: true
 
       routes:
-        - id: auth-service
+        - id: auth-service-auth
           uri: lb://auth-service
           predicates:
             - Path=/api/auth/**
+
+        - id: auth-service-users
+          uri: lb://auth-service
+          predicates:
             - Path=/api/users/**
 
         - id: item-service
@@ -35,6 +39,11 @@ spring:
           uri: lb://notification-service
           predicates:
             - Path=/api/notifications/**
+
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**
 
 eureka:
   client:

@@ -14,12 +14,12 @@ spring:
 
   data:
     redis:
-      host: redis
+      host: localhost
       port: 6379
 
   kafka:
     producer:
-      bootstrap-servers: kafka:9092
+      bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 

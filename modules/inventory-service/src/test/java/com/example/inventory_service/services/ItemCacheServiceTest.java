@@ -1,6 +1,8 @@
 package com.example.inventory_service.services;
 
 import com.example.inventory_service.models.Item;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,43 +20,54 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ItemCacheServiceTest {
 
     @Mock
-    private RedisTemplate<String, Item> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Mock
-    private ValueOperations<String, Item> valueOperations;
+    private ValueOperations<String, String> valueOperations;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     private ItemCacheService itemCacheService;
     private Item item;
+    private String itemJson;
 
     @BeforeEach
-    public void setUp() {
-        itemCacheService = new ItemCacheService(redisTemplate);
+    public void setUp() throws JsonProcessingException {
+        itemCacheService = new ItemCacheService(redisTemplate, objectMapper);
 
         item = new Item();
         item.setId(1L);
         item.setName("Test Item");
+
+        itemJson = "{\"id\":1,\"name\":\"Test Item\"}";
+
+        when(objectMapper.writeValueAsString(item)).thenReturn(itemJson);
+        when(objectMapper.readValue(itemJson, Item.class)).thenReturn(item);
     }
 
     @Test
-    void testGetItem_shouldReturnItemFromCache() {
+    void testGetItem_shouldReturnItemFromCache() throws JsonProcessingException {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("item:1")).thenReturn(item);
+        when(valueOperations.get("item:1")).thenReturn(itemJson);
 
         Item result = itemCacheService.getItem(1L);
 
         assertNotNull(result);
         assertEquals("Test Item", result.getName());
         verify(valueOperations, times(1)).get("item:1");
+        verify(objectMapper, times(1)).readValue(itemJson, Item.class);
     }
 
     @Test
-    void testCacheItem_shouldStoreItem() {
+    void testCacheItem_shouldStoreItem() throws JsonProcessingException {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         itemCacheService.cacheItem(item);
 
+        verify(objectMapper, times(1)).writeValueAsString(item);
         verify(valueOperations, times(1))
-                .set(eq("item:1"), eq(item), eq(Duration.ofMinutes(10)));
+                .set(eq("item:1"), eq(itemJson), eq(Duration.ofMinutes(10)));
     }
 
     @Test

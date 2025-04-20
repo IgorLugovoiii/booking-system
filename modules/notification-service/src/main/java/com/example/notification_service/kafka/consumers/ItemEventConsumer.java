@@ -26,8 +26,7 @@ public class ItemEventConsumer {
 
             NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com",
                     "Подія: " + itemEvent.getEventType(),
-                    "Товар: " + itemEvent.getName() + "\nОпис: " + itemEvent.getDescription()
-            );// замінити і зробити для зацікавлених юзерів
+                    "Товар: " + itemEvent.getName());// замінити і зробити для зацікавлених юзерів
 
             notificationService.sendNotification(request);
             System.out.println("Email sent for event: " + itemEvent.getEventType());

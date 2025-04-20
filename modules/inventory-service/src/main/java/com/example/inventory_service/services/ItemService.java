@@ -107,9 +107,8 @@ public class ItemService {
 
     @Transactional
     public void deleteById(Long id) {
-        itemRepository.deleteById(id);
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        itemCacheService.evictItem(id);
+
         itemProducer.sendItemDeletedEvent(
                 new ItemEvent("item.deleted",
                         item.getId(),
@@ -118,5 +117,8 @@ public class ItemService {
                         item.isAvailable(),
                         item.getPrice()
                 ));
+
+        itemCacheService.evictItem(id);
+        itemRepository.deleteById(id);
     }
 }

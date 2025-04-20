@@ -24,70 +24,70 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_BROKER_ID: 1
     networks:
       - microservices-net
 
-  postgres-booking:
-    image: postgres:14
-    container_name: postgres_booking
-    environment:
-      POSTGRES_DB: bookings2_db
-      POSTGRES_USER: igor
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5433:5432"
-    networks:
-      - microservices-net
-
-  postgres-auth:
-    image: postgres:14
-    container_name: postgres_auth
-    environment:
-      POSTGRES_DB: auth_service_db
-      POSTGRES_USER: igor
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5434:5432"
-    networks:
-      - microservices-net
-
-  postgres-admin:
-    image: postgres:14
-    container_name: postgres_admin
-    environment:
-      POSTGRES_DB: admin_service_db
-      POSTGRES_USER: igor
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5435:5432"
-    networks:
-      - microservices-net
-
-  postgres-inventory:
-    image: postgres:14
-    container_name: postgres_inventory
-    environment:
-      POSTGRES_DB: inventory_db
-      POSTGRES_USER: igor
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5436:5432"
-    networks:
-      - microservices-net
-
-  postgres-payment:
-    image: postgres:14
-    container_name: postgres_payment
-    environment:
-      POSTGRES_DB: payments_db
-      POSTGRES_USER: igor
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5438:5432"
-    networks:
-      - microservices-net
+#  postgres-booking:
+#    image: postgres:14
+#    container_name: postgres_booking
+#    environment:
+#      POSTGRES_DB: bookings2_db
+#      POSTGRES_USER: igor
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - "5433:5432"
+#    networks:
+#      - microservices-net
+#
+#  postgres-auth:
+#    image: postgres:14
+#    container_name: postgres_auth
+#    environment:
+#      POSTGRES_DB: auth_service_db
+#      POSTGRES_USER: igor
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - "5434:5432"
+#    networks:
+#      - microservices-net
+#
+#  postgres-admin:
+#    image: postgres:14
+#    container_name: postgres_admin
+#    environment:
+#      POSTGRES_DB: admin_service_db
+#      POSTGRES_USER: igor
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - "5435:5432"
+#    networks:
+#      - microservices-net
+#
+#  postgres-inventory:
+#    image: postgres:14
+#    container_name: postgres_inventory
+#    environment:
+#      POSTGRES_DB: inventory_db
+#      POSTGRES_USER: igor
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - "5436:5432"
+#    networks:
+#      - microservices-net
+#
+#  postgres-payment:
+#    image: postgres:14
+#    container_name: postgres_payment
+#    environment:
+#      POSTGRES_DB: payments_db
+#      POSTGRES_USER: igor
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - "5438:5432"
+#    networks:
+#      - microservices-net
 
 
   redis:
