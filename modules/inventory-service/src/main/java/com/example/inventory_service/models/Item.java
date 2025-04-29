@@ -1,6 +1,5 @@
 package com.example.inventory_service.models;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -28,14 +27,4 @@ public class Item {
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public String toJson() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(this); // Перетворює об'єкт Item у JSON
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 }

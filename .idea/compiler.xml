@@ -20,8 +20,8 @@
         </processorPath>
         <module name="inventory-service" />
         <module name="payment-service" />
-        <module name="notification-service" />
         <module name="admin-service" />
+        <module name="notification-service" />
         <module name="booking-service" />
       </profile>
       <profile name="Annotation profile for auth-service" enabled="true">
