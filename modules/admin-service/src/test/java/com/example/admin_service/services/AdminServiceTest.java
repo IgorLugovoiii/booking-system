@@ -27,10 +27,7 @@ public class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        userDto = new UserDto();
-        userDto.setId(1L);
-        userDto.setUsername("username");
-        userDto.setRole("USER");
+        userDto = new UserDto(1L, "username", "USER");
 
         updateRoleRequest = new UpdateRoleRequest();
         updateRoleRequest.setNewRole("ADMIN");
