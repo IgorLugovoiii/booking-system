@@ -12,7 +12,9 @@ import com.example.auth_service.utils.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,16 +64,22 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse authenticate(AuthRequest authRequest){
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authRequest.getUsername(),
-                        authRequest.getPassword()
-                )
-        );
+    public AuthResponse authenticate(AuthRequest authRequest) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getUsername(),
+                            authRequest.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException | UsernameNotFoundException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Authentication failed", ex);
+        }
 
         User user = userRepository.findUserByUsername(authRequest.getUsername())
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return authResponse(user);
     }
