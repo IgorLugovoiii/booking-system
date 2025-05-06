@@ -68,7 +68,8 @@ public class AdminController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     public ResponseEntity<Void> deleteUserById(
-            @Parameter(description = "ID of the user to delete", example = "10") @PathVariable Long id) {
+            @Parameter(description = "ID of the user to delete", example = "10")
+            @PathVariable Long id) {
         adminService.deleteUserById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

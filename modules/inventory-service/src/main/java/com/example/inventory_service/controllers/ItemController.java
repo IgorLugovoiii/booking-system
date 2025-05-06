@@ -4,6 +4,7 @@ import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
 import com.example.inventory_service.services.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -52,7 +53,9 @@ public class ItemController {
             @ApiResponse(responseCode = "404", description = "Item not found")
     })
     @GetMapping("/{itemId}")
-    public ResponseEntity<ItemResponse> findItemById(@PathVariable Long itemId){
+    public ResponseEntity<ItemResponse> findItemById(
+            @Parameter(description = "ID of the item to find", example = "1")
+            @PathVariable Long itemId){
         return new ResponseEntity<>(itemService.findById(itemId),HttpStatus.OK);
     }
 
@@ -73,7 +76,9 @@ public class ItemController {
             @ApiResponse(responseCode = "404", description = "Item not found")
     })
     @PutMapping("/{itemId}")
-    public ResponseEntity<ItemResponse> updateItem(@PathVariable @Valid Long itemId, @RequestBody ItemRequest itemRequest){
+    public ResponseEntity<ItemResponse> updateItem(
+            @Parameter(description = "ID of the item to update", example = "1")
+            @PathVariable @Valid Long itemId, @RequestBody ItemRequest itemRequest){
         return new ResponseEntity<>(itemService.updateItem(itemId,itemRequest),HttpStatus.OK);
     }
 
@@ -84,7 +89,9 @@ public class ItemController {
             @ApiResponse(responseCode = "404", description = "Item not found")
     })
     @DeleteMapping("/{itemId}")
-    public ResponseEntity<Void> deleteItemById(@PathVariable Long itemId){
+    public ResponseEntity<Void> deleteItemById(
+            @Parameter(description = "ID of the item to delete", example = "1")
+            @PathVariable Long itemId){
         itemService.deleteById(itemId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

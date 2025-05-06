@@ -4,6 +4,7 @@ import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
 import com.example.booking_service.services.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,7 +44,9 @@ public class BookingController {
             @ApiResponse(responseCode = "404", description = "Booking not found")
     })
     @GetMapping("/{userId}")
-    public ResponseEntity<List<BookingResponse>> getUserBookings(@PathVariable Long userId) {
+    public ResponseEntity<List<BookingResponse>> getUserBookings(
+            @Parameter(description = "ID of the user to find all his bookings", example = "1")
+            @PathVariable Long userId) {
         return new ResponseEntity<>(bookingService.getBookingByUserId(userId), HttpStatus.OK);
     }
 
@@ -54,7 +57,9 @@ public class BookingController {
             @ApiResponse(responseCode = "400", description = "Invalid credentials")
     })
     @PutMapping("/{bookingId}/cancel")
-    public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId) {
+    public ResponseEntity<Void> cancelBooking(
+            @Parameter(description = "ID of the booking to find by id", example = "1")
+            @PathVariable Long bookingId) {
         bookingService.cancelBooking(bookingId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -66,8 +71,9 @@ public class BookingController {
             @ApiResponse(responseCode = "400", description = "Invalid credentials")
     })
     @PutMapping("/{bookingId}/update")
-    public ResponseEntity<BookingResponse> updateBooking(@PathVariable Long bookingId,
-                                                         @RequestBody BookingRequest bookingRequest) {
+    public ResponseEntity<BookingResponse> updateBooking(
+            @Parameter(description = "ID of the booking to update", example = "1")
+            @PathVariable Long bookingId, @RequestBody BookingRequest bookingRequest) {
         return new ResponseEntity<>(bookingService.updateBooking(bookingId, bookingRequest), HttpStatus.OK);
     }
 
@@ -77,7 +83,9 @@ public class BookingController {
             @ApiResponse(responseCode = "403", description = "Unauthorized")
     })
     @PutMapping("/{bookingId}/confirm")
-    public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long bookingId){
+    public ResponseEntity<BookingResponse> confirmBooking(
+            @Parameter(description = "ID of the booking to delete", example = "1")
+            @PathVariable Long bookingId){
         return new ResponseEntity<>(bookingService.confirmBooking(bookingId), HttpStatus.OK);
     }
 }
