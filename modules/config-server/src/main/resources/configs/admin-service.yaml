@@ -12,6 +12,32 @@ spring:
       ddl-auto: create-drop
     show-sql: true
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        registerHealthIndicator: true # дозволяє Spring Boot Actuator моніторити статус CircuitBreaker через /actuator/health
+        slidingWindowSize: 5 # розмір вікна (кількість останніх викликів, які аналізуються)
+        minimumNumberOfCalls: 5 # мінімальна кількість викликів, перш ніж почати оцінювати failureRate
+        failureRateThreshold: 50 # якщо 50% викликів завершуються помилкою — відкривається коло (open state)
+        waitDurationInOpenState: 10s # час, скільки CircuitBreaker буде в "open" стані, перш ніж перейти у "half-open"
+
+  retry:
+    instances:
+      adminService:
+        maxAttempts: 3 # максимальна кількість спроб (1 основна + 2 ретраї)
+        waitDuration: 2s # затримка між спробами (2 секунди)
+        retryExceptions: # тільки ці виключення спричиняють повторну спробу
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+
+  ratelimiter:
+    instances:
+      adminService:
+        limitForPeriod: 5 # максимум 5 викликів у період часу
+        limitRefreshPeriod: 10s # період оновлення ліміту (раз на 10 секунд лічильник скидається)
+        timeoutDuration: 1s # якщо ліміт вичерпано — скільки максимум чекати, щоб звільнилось "місце" для виклику
+
 eureka:
   client:
     service-url:
