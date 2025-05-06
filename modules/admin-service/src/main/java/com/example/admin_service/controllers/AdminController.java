@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Admin controller", description = "Managing for managing users, only for admins usage")
+@Tag(name = "Admin controller", description = "Controller for managing users, only for admins usage")
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
