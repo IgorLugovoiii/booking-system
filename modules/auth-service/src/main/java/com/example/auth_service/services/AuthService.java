@@ -9,7 +9,9 @@ import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
 import com.example.auth_service.utils.JwtUtil;
-import jakarta.persistence.EntityNotFoundException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,9 +21,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.logging.Logger;
+
 @Service
 public class AuthService {
-
+    private static final Logger logger = Logger.getLogger(AuthService.class.getName());
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -38,15 +42,19 @@ public class AuthService {
         this.authProducer = authProducer;
     }
 
-    private AuthResponse authResponse(User user){
+    private AuthResponse authResponse(User user) {
         AuthResponse authResponse = new AuthResponse();
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
         authResponse.setToken(token);
         return authResponse;
     }
 
+
     @Transactional
-    public AuthResponse registration(RegisterRequest registerRequest){
+    @CircuitBreaker(name = "authService", fallbackMethod = "registrationFallback")
+    @Retry(name = "authService")
+    @RateLimiter(name = "authService")
+    public AuthResponse registration(RegisterRequest registerRequest) {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
@@ -64,6 +72,9 @@ public class AuthService {
     }
 
     @Transactional
+    @CircuitBreaker(name = "authService", fallbackMethod = "loginFallback")
+    @Retry(name = "authService")
+    @RateLimiter(name = "authService")
     public AuthResponse authenticate(AuthRequest authRequest) {
         try {
             authenticationManager.authenticate(
@@ -82,5 +93,15 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return authResponse(user);
+    }
+
+    public AuthResponse registrationFallback(Throwable t) {
+        logger.severe("Fallback triggered in registrationFallback: " + t.getMessage());
+        throw new IllegalStateException("Fallback: can`t register user");
+    }
+
+    public AuthResponse loginFallback(Throwable t) {
+        logger.severe("Fallback triggered in LoginFallback: " + t.getMessage());
+        throw new IllegalStateException("Fallback: can`t login user");
     }
 }

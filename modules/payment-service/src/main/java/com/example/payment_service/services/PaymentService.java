@@ -7,13 +7,18 @@ import com.example.payment_service.kafka.PaymentProducer;
 import com.example.payment_service.models.Payment;
 import com.example.payment_service.models.enums.PaymentStatus;
 import com.example.payment_service.repositories.PaymentRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.logging.Logger;
 
 @Service
 public class PaymentService {
+    private static final Logger logger = Logger.getLogger(PaymentService.class.getName());
     private final PaymentRepository paymentRepository;
     private final PaymentProducer paymentProducer;
 
@@ -23,6 +28,9 @@ public class PaymentService {
         this.paymentProducer = paymentProducer;
     }
 
+    @CircuitBreaker(name = "paymentService", fallbackMethod = "processPaymentFallback")
+    @Retry(name = "paymentService")
+    @RateLimiter(name = "paymentService")
     public PaymentResponse processPayment(PaymentRequest paymentRequest){
         Payment payment = new Payment();
         payment.setBookingId(paymentRequest.getBookingId());
@@ -45,4 +53,8 @@ public class PaymentService {
         return new PaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentDate());
     }
 
+    public PaymentResponse processPaymentFallback(PaymentRequest paymentRequest, Throwable t) {
+        logger.severe("Error processing payment for booking " + paymentRequest.getBookingId() + ": " + t.getMessage());
+        throw new IllegalStateException("Fallback: can't process payment for booking " + paymentRequest.getBookingId());
+    }
 }

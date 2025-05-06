@@ -6,6 +6,9 @@ import com.example.inventory_service.kafka.ItemEvent;
 import com.example.inventory_service.kafka.ItemProducer;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.repositories.ItemRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,9 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Service
 public class ItemService {
+    private static final Logger logger = Logger.getLogger(ItemService.class.getName());
     private final ItemRepository itemRepository;
     private final ItemProducer itemProducer;
     private final ItemCacheService itemCacheService;
@@ -41,6 +46,9 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
+    @CircuitBreaker(name = "itemService", fallbackMethod = "findByIdFallback")
+    @Retry(name = "itemService")
+    @RateLimiter(name = "itemService")
     public ItemResponse findById(Long itemId) {
         Item cachedItem = itemCacheService.getItem(itemId);
         if (cachedItem != null) {
@@ -52,6 +60,9 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
+    @CircuitBreaker(name = "itemService", fallbackMethod = "findAllFallback")
+    @Retry(name = "itemService")
+    @RateLimiter(name = "itemService")
     public List<ItemResponse> findAll() {
         return itemRepository.findAll().stream()
                 .map(this::convertToItemResponse)
@@ -59,6 +70,9 @@ public class ItemService {
     }
 
     @Transactional
+    @CircuitBreaker(name = "itemService", fallbackMethod = "createItemFallback")
+    @Retry(name = "itemService")
+    @RateLimiter(name = "itemService")
     public ItemResponse createItem(ItemRequest itemRequest) {
         Item item = new Item();
         item.setName(itemRequest.getName());
@@ -83,6 +97,9 @@ public class ItemService {
     }
 
     @Transactional
+    @CircuitBreaker(name = "itemService", fallbackMethod = "updateItemFallback")
+    @Retry(name = "itemService")
+    @RateLimiter(name = "itemService")
     public ItemResponse updateItem(Long id, ItemRequest itemRequest) {
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         item.setName(itemRequest.getName());
@@ -106,6 +123,9 @@ public class ItemService {
     }
 
     @Transactional
+    @CircuitBreaker(name = "itemService", fallbackMethod = "deleteByIdFallback")
+    @Retry(name = "itemService")
+    @RateLimiter(name = "itemService")
     public void deleteById(Long id) {
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
@@ -120,5 +140,30 @@ public class ItemService {
 
         itemCacheService.evictItem(id);
         itemRepository.deleteById(id);
+    }
+
+    public ItemResponse findByIdFallback(Long itemId, Throwable t) {
+        logger.severe("Error fetching item with id " + itemId + ": " + t.getMessage());
+        throw new IllegalStateException("Fallback: can't find item with id: " + itemId);
+    }
+
+    public List<ItemResponse> findAllFallback(Throwable t) {
+        logger.severe("Error fetching all items: " + t.getMessage());
+        throw new IllegalStateException("Fallback: can't find all items");
+    }
+
+    public ItemResponse createItemFallback(ItemRequest itemRequest, Throwable t) {
+        logger.severe("Error creating item: " + t.getMessage());
+        throw new IllegalStateException("Fallback: can't create item");
+    }
+
+    public ItemResponse updateItemFallback(Long id, ItemRequest itemRequest, Throwable t) {
+        logger.severe("Error updating item with id " + id + ": " + t.getMessage());
+        throw new IllegalStateException("Fallback: can't update item with id: " + id);
+    }
+
+    public void deleteByIdFallback(Long id, Throwable t) {
+        logger.severe("Error deleting item with id " + id + ": " + t.getMessage());
+        throw new IllegalStateException("Fallback: can't delete item with id: " + id);
     }
 }
