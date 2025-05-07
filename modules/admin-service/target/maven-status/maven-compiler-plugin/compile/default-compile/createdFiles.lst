@@ -1,4 +1,5 @@
 com\example\admin_service\AdminServiceApplication.class
+com\example\admin_service\configs\OpenApiConfig.class
 com\example\admin_service\services\AdminService.class
 com\example\admin_service\controllers\AdminController.class
 com\example\admin_service\exceptions\GlobalExceptionHandler.class

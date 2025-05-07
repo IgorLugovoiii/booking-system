@@ -4,6 +4,7 @@ com\example\inventory_service\exception\ErrorResponse.class
 com\example\inventory_service\kafka\ItemProducer.class
 com\example\inventory_service\kafka\ItemEvent.class
 com\example\inventory_service\dtos\ItemResponse.class
+com\example\inventory_service\configs\OpenApiConfig.class
 com\example\inventory_service\configs\RedisConfig.class
 com\example\inventory_service\exception\KafkaMessageSendException.class
 com\example\inventory_service\controllers\ItemController.class

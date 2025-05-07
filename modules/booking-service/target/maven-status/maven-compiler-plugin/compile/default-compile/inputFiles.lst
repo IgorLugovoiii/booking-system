@@ -1,5 +1,6 @@
 D:\JavaProjects\booking-system\modules\booking-service\src\main\java\com\example\booking_service\aspects\LoggingAspect.java
 D:\JavaProjects\booking-system\modules\booking-service\src\main\java\com\example\booking_service\BookingServiceApplication.java
+D:\JavaProjects\booking-system\modules\booking-service\src\main\java\com\example\booking_service\configs\OpenApiConfig.java
 D:\JavaProjects\booking-system\modules\booking-service\src\main\java\com\example\booking_service\controllers\BookingController.java
 D:\JavaProjects\booking-system\modules\booking-service\src\main\java\com\example\booking_service\dtos\BookingRequest.java
 D:\JavaProjects\booking-system\modules\booking-service\src\main\java\com\example\booking_service\dtos\BookingResponse.java

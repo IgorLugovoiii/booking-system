@@ -1,3 +1,4 @@
+com\example\auth_service\integration\AuthControllerIT.class
 com\example\auth_service\services\AuthServiceTest.class
 com\example\auth_service\AuthServiceApplicationTests.class
 com\example\auth_service\services\UserServiceTest.class

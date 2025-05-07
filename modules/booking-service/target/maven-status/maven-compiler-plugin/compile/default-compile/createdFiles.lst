@@ -5,6 +5,7 @@ com\example\booking_service\exception\KafkaMessageSendException.class
 com\example\booking_service\services\BookingService.class
 com\example\booking_service\dtos\BookingRequest.class
 com\example\booking_service\BookingServiceApplication.class
+com\example\booking_service\configs\OpenApiConfig.class
 com\example\booking_service\exception\ErrorResponse.class
 com\example\booking_service\aspects\LoggingAspect.class
 com\example\booking_service\kafka\BookingEvent.class

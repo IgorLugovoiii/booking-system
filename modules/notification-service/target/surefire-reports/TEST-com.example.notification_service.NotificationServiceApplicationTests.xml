@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.example.notification_service.NotificationServiceApplicationTests" time="0.003" tests="1" errors="0" skipped="1" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.example.notification_service.NotificationServiceApplicationTests" time="0.005" tests="1" errors="0" skipped="1" failures="0">
   <properties/>
   <testcase name="contextLoads" classname="com.example.notification_service.NotificationServiceApplicationTests" time="0.0">
     <skipped message="class com.example.notification_service.NotificationServiceApplicationTests is @Disabled"/>
-    <system-err><![CDATA[квіт. 16, 2025 6:19:15 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
+    <system-err><![CDATA[трав. 07, 2025 4:30:55 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
 WARNING: Discovered 3 'junit-platform.properties' configuration files on the classpath (see below); only the first (*) will be used.
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-clients/3.8.1/kafka-clients-3.8.1-test.jar!/junit-platform.properties (*)
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-server-common/3.8.1/kafka-server-common-3.8.1-test.jar!/junit-platform.properties
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka_2.13/3.8.1/kafka_2.13-3.8.1-test.jar!/junit-platform.properties
-квіт. 16, 2025 6:19:15 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
+трав. 07, 2025 4:30:55 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
 WARNING: Discovered 3 'junit-platform.properties' configuration files on the classpath (see below); only the first (*) will be used.
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-clients/3.8.1/kafka-clients-3.8.1-test.jar!/junit-platform.properties (*)
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-server-common/3.8.1/kafka-server-common-3.8.1-test.jar!/junit-platform.properties
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka_2.13/3.8.1/kafka_2.13-3.8.1-test.jar!/junit-platform.properties
-квіт. 16, 2025 6:19:15 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
+трав. 07, 2025 4:30:56 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
 WARNING: Discovered 3 'junit-platform.properties' configuration files on the classpath (see below); only the first (*) will be used.
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-clients/3.8.1/kafka-clients-3.8.1-test.jar!/junit-platform.properties (*)
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-server-common/3.8.1/kafka-server-common-3.8.1-test.jar!/junit-platform.properties
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka_2.13/3.8.1/kafka_2.13-3.8.1-test.jar!/junit-platform.properties
-квіт. 16, 2025 6:19:15 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
+трав. 07, 2025 4:30:56 ПП org.junit.platform.launcher.core.LauncherConfigurationParameters loadClasspathResource
 WARNING: Discovered 3 'junit-platform.properties' configuration files on the classpath (see below); only the first (*) will be used.
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-clients/3.8.1/kafka-clients-3.8.1-test.jar!/junit-platform.properties (*)
 - jar:file:/C:/Users/i/.m2/repository/org/apache/kafka/kafka-server-common/3.8.1/kafka-server-common-3.8.1-test.jar!/junit-platform.properties

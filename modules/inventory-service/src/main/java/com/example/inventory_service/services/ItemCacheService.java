@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+
 @Service
 public class ItemCacheService {
     private final RedisTemplate<String, String> redisTemplate;
@@ -33,7 +35,7 @@ public class ItemCacheService {
     public void cacheItem(Item item) {
         try {
             String json = objectMapper.writeValueAsString(item);
-            redisTemplate.opsForValue().set("item:" + item.getId(), json);
+            redisTemplate.opsForValue().set("item:" + item.getId(), json, Duration.ofMinutes(10));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize Item", e);
         }

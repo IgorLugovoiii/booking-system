@@ -2,6 +2,7 @@ D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\a
 D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\admin_service\aspects\LoggingAspect.java
 D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\admin_service\clients\AuthServiceClient.java
 D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\admin_service\configs\FeignConfig.java
+D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\admin_service\configs\OpenApiConfig.java
 D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\admin_service\controllers\AdminController.java
 D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\admin_service\dtos\UpdateRoleRequest.java
 D:\JavaProjects\booking-system\modules\admin-service\src\main\java\com\example\admin_service\dtos\UserDto.java

@@ -25,7 +25,7 @@ public class ItemCacheServiceTest {
     @Mock
     private ValueOperations<String, String> valueOperations;
 
-    @Mock
+    @Mock(lenient = true) // Додаємо lenient, щоб уникнути UnnecessaryStubbing
     private ObjectMapper objectMapper;
 
     private ItemCacheService itemCacheService;
@@ -33,7 +33,7 @@ public class ItemCacheServiceTest {
     private String itemJson;
 
     @BeforeEach
-    public void setUp() throws JsonProcessingException {
+    public void setUp() {
         itemCacheService = new ItemCacheService(redisTemplate, objectMapper);
 
         item = new Item();
@@ -41,15 +41,13 @@ public class ItemCacheServiceTest {
         item.setName("Test Item");
 
         itemJson = "{\"id\":1,\"name\":\"Test Item\"}";
-
-        when(objectMapper.writeValueAsString(item)).thenReturn(itemJson);
-        when(objectMapper.readValue(itemJson, Item.class)).thenReturn(item);
     }
 
     @Test
     void testGetItem_shouldReturnItemFromCache() throws JsonProcessingException {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("item:1")).thenReturn(itemJson);
+        when(objectMapper.readValue(itemJson, Item.class)).thenReturn(item);
 
         Item result = itemCacheService.getItem(1L);
 
@@ -62,6 +60,7 @@ public class ItemCacheServiceTest {
     @Test
     void testCacheItem_shouldStoreItem() throws JsonProcessingException {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(objectMapper.writeValueAsString(item)).thenReturn(itemJson);
 
         itemCacheService.cacheItem(item);
 

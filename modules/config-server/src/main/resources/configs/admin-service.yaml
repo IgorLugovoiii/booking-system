@@ -12,6 +12,17 @@ spring:
       ddl-auto: create-drop
     show-sql: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+
 resilience4j:
   circuitbreaker:
     instances:

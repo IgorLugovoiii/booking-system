@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .pathMatchers("/actuator/prometheus").permitAll()
+                        .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/error").permitAll()
                         .anyExchange().authenticated()
                 )

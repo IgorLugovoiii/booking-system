@@ -1,4 +1,5 @@
 D:\JavaProjects\booking-system\modules\payment-service\src\main\java\com\example\payment_service\aspects\LoggingAspect.java
+D:\JavaProjects\booking-system\modules\payment-service\src\main\java\com\example\payment_service\configs\OpenApiConfig.java
 D:\JavaProjects\booking-system\modules\payment-service\src\main\java\com\example\payment_service\controllers\PaymentController.java
 D:\JavaProjects\booking-system\modules\payment-service\src\main\java\com\example\payment_service\dtos\PaymentRequest.java
 D:\JavaProjects\booking-system\modules\payment-service\src\main\java\com\example\payment_service\dtos\PaymentResponse.java
