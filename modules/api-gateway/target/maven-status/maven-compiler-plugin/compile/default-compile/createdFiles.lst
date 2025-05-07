@@ -1,4 +1,0 @@
-com\example\api_gateway\filters\JwtUtil.class
-com\example\api_gateway\filters\JwtAuthenticationFilter.class
-com\example\api_gateway\ApiGatewayApplication.class
-com\example\api_gateway\configs\SecurityConfig.class
