@@ -1,0 +1,55 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+**/target/
+
+# Gradle (якщо раптом)
+.gradle/
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+logs/
+log/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Environment / Config
+.env
+*.local
+application-dev.yml
+application-prod.yml
+application-test.yml
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Generated
+hs_err_pid*
+dependency-reduced-pom.xml
+rebel.xml
+*.swp
+*.bak
+
+# Docker
+**/.docker
+docker-compose.override.yml
+
+# Test output
+test-output/
+surefire-reports/
