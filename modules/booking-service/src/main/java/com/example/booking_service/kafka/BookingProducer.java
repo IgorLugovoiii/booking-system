@@ -1,6 +1,7 @@
 package com.example.booking_service.kafka;
 
 import com.example.booking_service.exception.KafkaMessageSendException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -18,40 +19,8 @@ public class BookingProducer {
         this.objectMapper = objectMapper;
     }
 
-    public void sendBookingCreatedEvent(BookingEvent bookingEvent) {
-        try {
-            String json = objectMapper.writeValueAsString(bookingEvent);
-            kafkaTemplate.send(TOPIC, "booking.created", json);
-        } catch (Exception e) {
-            throw new KafkaMessageSendException("Failed to send booking.created event", e);
-        }
+    public void sendEvent(BookingEvent bookingEvent) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(bookingEvent);
+        kafkaTemplate.send(TOPIC, bookingEvent.getEventType(), json);
     }
-
-    public void sendBookingUpdatedEvent(BookingEvent bookingEvent) {
-        try {
-            String json = objectMapper.writeValueAsString(bookingEvent);
-            kafkaTemplate.send(TOPIC, "booking.updated", json);
-        } catch (Exception e) {
-            throw new KafkaMessageSendException("Failed to send booking.updated event", e);
-        }
-    }
-
-    public void sendBookingCanceledEvent(BookingEvent bookingEvent) {
-        try {
-            String json = objectMapper.writeValueAsString(bookingEvent);
-            kafkaTemplate.send(TOPIC, "booking.deleted", json);
-        } catch (Exception e) {
-            throw new KafkaMessageSendException("Failed to send booking.deleted event", e);
-        }
-    }
-
-    public void sendBookingConfirmedEvent(BookingEvent bookingEvent) {
-        try {
-            String json = objectMapper.writeValueAsString(bookingEvent);
-            kafkaTemplate.send(TOPIC, "booking.confirmed", json);
-        } catch (Exception e) {
-            throw new KafkaMessageSendException("Failed to send booking.confirmed event", e);
-        }
-    }
-
 }

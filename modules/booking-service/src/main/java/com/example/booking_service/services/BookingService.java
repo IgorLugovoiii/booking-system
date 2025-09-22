@@ -2,11 +2,13 @@ package com.example.booking_service.services;
 
 import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
-import com.example.booking_service.kafka.BookingEvent;
 import com.example.booking_service.kafka.BookingProducer;
+import com.example.booking_service.mapper.BookingEventMapper;
+import com.example.booking_service.mapper.BookingMapper;
 import com.example.booking_service.models.Booking;
 import com.example.booking_service.models.enums.BookingStatus;
 import com.example.booking_service.repositories.BookingRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -24,52 +26,38 @@ public class BookingService {
     private static final Logger logger = Logger.getLogger(BookingService.class.getName());
     private final BookingRepository bookingRepository;
     private final BookingProducer bookingProducer;
+    private final BookingMapper bookingMapper;
+    private final BookingEventMapper bookingEventMapper;
 
     @Autowired
-    public BookingService(BookingRepository bookingRepository, BookingProducer bookingProducer) {
+    public BookingService(BookingRepository bookingRepository, BookingProducer bookingProducer,
+                          BookingMapper bookingMapper, BookingEventMapper bookingEventMapper) {
         this.bookingRepository = bookingRepository;
         this.bookingProducer = bookingProducer;
-    }
-
-    private BookingResponse convertToBookingResponse(Booking booking) {
-        BookingResponse bookingResponse = new BookingResponse();
-        bookingResponse.setId(booking.getId());
-        bookingResponse.setItemId(booking.getItemId());
-        bookingResponse.setUserId(booking.getUserId());
-        bookingResponse.setBookingDate(booking.getBookingDate());
-        bookingResponse.setStatus(booking.getBookingStatus());
-        return bookingResponse;
+        this.bookingMapper = bookingMapper;
+        this.bookingEventMapper = bookingEventMapper;
     }
 
     @Transactional
-    @CircuitBreaker(name = "bookingService", fallbackMethod = "createBookingFallback")
+    @CircuitBreaker(name = "bookingService")
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
-    public BookingResponse createBooking(BookingRequest bookingRequest) {
-        Booking booking = new Booking();
-        booking.setUserId(bookingRequest.getUserId());
-        booking.setItemId(bookingRequest.getItemId());
-        booking.setBookingDate(bookingRequest.getBookingDate());
+    public BookingResponse createBooking(BookingRequest bookingRequest) throws JsonProcessingException {
+        Booking booking = bookingMapper.toBooking(bookingRequest);
         booking.setBookingStatus(BookingStatus.PENDING);
         booking.setCreatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
 
         Booking savedBooking = bookingRepository.save(booking);
-        bookingProducer.sendBookingCreatedEvent(new BookingEvent(
-                "booking.created",
-                booking.getId(),
-                booking.getUserId(),
-                booking.getItemId(),
-                booking.getCreatedAt()
-        ));
-        return convertToBookingResponse(savedBooking);
+        bookingProducer.sendEvent(bookingEventMapper.toCreatedEvent(savedBooking));
+        return bookingMapper.toBookingResponse(savedBooking);
     }
 
     @Transactional
-    @CircuitBreaker(name = "bookingService", fallbackMethod = "cancelBookingFallback")
+    @CircuitBreaker(name = "bookingService")
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
-    public void cancelBooking(Long bookingId) {
+    public void cancelBooking(Long bookingId) throws JsonProcessingException {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
@@ -81,31 +69,22 @@ public class BookingService {
 
         bookingRepository.save(booking);
 
-        bookingProducer.sendBookingCanceledEvent(new BookingEvent(
-                "booking.canceled",
-                booking.getId(),
-                booking.getUserId(),
-                booking.getItemId(),
-                booking.getCreatedAt()
-        ));
+        bookingProducer.sendEvent(bookingEventMapper.toCanceledEvent(booking));
     }
 
     @Transactional
-    @CircuitBreaker(name = "bookingService", fallbackMethod = "getBookingByUserIdBookingFallback")
+    @CircuitBreaker(name = "bookingService")
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
     public List<BookingResponse> getBookingByUserId(Long userId) {
-        return bookingRepository.findByUserId(userId)
-                .stream()
-                .map(this::convertToBookingResponse)
-                .toList();
+        return bookingRepository.findByUserId(userId).stream().map(bookingMapper::toBookingResponse).toList();
     }
 
     @Transactional
-    @CircuitBreaker(name = "bookingService", fallbackMethod = "updateBookingFallback")
+    @CircuitBreaker(name = "bookingService")
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
-    public BookingResponse updateBooking(Long bookingId, BookingRequest bookingRequest) {
+    public BookingResponse updateBooking(Long bookingId, BookingRequest bookingRequest) throws JsonProcessingException {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
@@ -117,22 +96,16 @@ public class BookingService {
         booking.setBookingDate(bookingRequest.getBookingDate());
         booking.setUpdatedAt(LocalDateTime.now());
 
-        bookingProducer.sendBookingUpdatedEvent(new BookingEvent(
-                "booking.updated",
-                booking.getId(),
-                booking.getUserId(),
-                booking.getItemId(),
-                booking.getCreatedAt()
-        ));
+        bookingProducer.sendEvent(bookingEventMapper.toUpdatedEvent(booking));
 
-        return convertToBookingResponse(bookingRepository.save(booking));
+        return bookingMapper.toBookingResponse(bookingRepository.save(booking));
     }
 
     @Transactional
-    @CircuitBreaker(name = "bookingService", fallbackMethod = "confirmBookingFallback")
+    @CircuitBreaker(name = "bookingService")
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
-    public BookingResponse confirmBooking(Long bookingId) {
+    public BookingResponse confirmBooking(Long bookingId) throws JsonProcessingException {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
@@ -141,39 +114,8 @@ public class BookingService {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         booking.setUpdatedAt(LocalDateTime.now());
 
-        bookingProducer.sendBookingConfirmedEvent(new BookingEvent(
-                "booking.confirmed",
-                booking.getId(),
-                booking.getUserId(),
-                booking.getItemId(),
-                booking.getCreatedAt()
-        ));
+        bookingProducer.sendEvent(bookingEventMapper.toConfirmedEvent(booking));
 
-        return convertToBookingResponse(bookingRepository.save(booking));
-    }
-
-    public BookingResponse createBookingFallback(BookingRequest bookingRequest, Throwable t) {
-        logger.severe("Fallback triggered in createBookingFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can't create booking");
-    }
-
-    public void cancelBookingFallback(Long bookingId, Throwable t) {
-        logger.severe("Fallback triggered in cancelBookingFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can't cancel booking with id: " + bookingId);
-    }
-
-    public List<BookingResponse> getBookingByUserIdBookingFallback(Long userId, Throwable t) {
-        logger.severe("Fallback triggered in getBookingByUserIdBookingFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can't find bookings for user with id: " + userId);
-    }
-
-    public BookingResponse updateBookingFallback(Long bookingId, BookingRequest bookingRequest, Throwable t) {
-        logger.severe("Fallback triggered in updateBookingFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can't update booking with id: " + bookingId);
-    }
-
-    public BookingResponse confirmBookingFallback(Long bookingId, Throwable t) {
-        logger.severe("Fallback triggered in confirmBookingFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can't confirm booking with id: " + bookingId);
+        return bookingMapper.toBookingResponse(bookingRepository.save(booking));
     }
 }
