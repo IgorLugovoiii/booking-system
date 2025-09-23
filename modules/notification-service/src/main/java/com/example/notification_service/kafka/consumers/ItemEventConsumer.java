@@ -25,8 +25,8 @@ public class ItemEventConsumer {
             ItemEvent itemEvent = objectMapper.readValue(message, ItemEvent.class);
 
             NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com",
-                    "Подія: " + itemEvent.getEventType(),
-                    "Товар: " + itemEvent.getName());// замінити і зробити для зацікавлених юзерів
+                    "Event: " + itemEvent.getEventType(),
+                    "Item: " + itemEvent.getName());// замінити і зробити для зацікавлених юзерів
 
             notificationService.sendNotification(request);
             System.out.println("Email sent for event: " + itemEvent.getEventType());

@@ -25,19 +25,19 @@ public class BookingEventConsumer {
             BookingEvent event = objectMapper.readValue(message, BookingEvent.class);
 
             String subject = switch (event.getEventType()) {
-                case "booking.created" -> "Ваше бронювання створено!";
-                case "booking.updated" -> "Бронювання оновлено";
-                case "booking.canceled" -> "Бронювання скасовано";
-                case "booking.confirmed" -> "Бронювання підтверджено";
-                default -> "Повідомлення про бронювання";
+                case "booking.created" -> "Booking created";
+                case "booking.updated" -> "Booking updated";
+                case "booking.canceled" -> "Booking canceled";
+                case "booking.confirmed" -> "Booking confirmed";
+                default -> "Message about booking";
             };
-            String msg = "Бронювання #" + event.getBookingId() + " для item #" + event.getItemId() +
-                    " створено/оновлено/скасовано в: " + event.getBookingTime();
+            String msg = "Booking #" + event.getBookingId() + " for item #" + event.getItemId() +
+                    " created/updated/deleted at: " + event.getBookingTime();
 
             NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com", subject, msg);// заглушка
             notificationService.sendNotification(request);
 
-            System.out.println("Booking event оброблено: " + event.getEventType());
+            System.out.println("Booking event processed: " + event.getEventType());
         } catch (Exception e) {
             throw new KafkaMessageReceiveException("Failed to receive booking event" , e);
         }

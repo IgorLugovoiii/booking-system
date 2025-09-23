@@ -25,7 +25,7 @@ public class PaymentEventConsumer {
             PaymentEvent paymentEvent = objectMapper.readValue(message, PaymentEvent.class);
             if ("payment.success".equals(paymentEvent.getEventType())) {
                 String msg = String.format(
-                        "Оплата успішна! Сума: %.2f грн. Дата: %s",
+                        "Payment successful! Price: %.2f hrn. Date: %s",
                         paymentEvent.getAmount(),
                         paymentEvent.getPaymentDate()
                 );

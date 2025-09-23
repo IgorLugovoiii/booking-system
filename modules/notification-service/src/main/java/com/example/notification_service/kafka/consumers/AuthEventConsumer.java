@@ -26,19 +26,19 @@ public class AuthEventConsumer {
             UserEvent userEvent = objectMapper.readValue(message, UserEvent.class);
 
             String subject = switch (userEvent.getEventType()) {
-                case "user.registered" -> "Юзер успішно зареєстрований";
-                case "user.role.updated" -> "Роль юзера успішно оновлена";
-                case "user.deleted" -> "Юзер успішно видалений";
-                default -> "Повідомлення про юзера";
+                case "user.registered" -> "User successfully registered";
+                case "user.role.updated" -> "User role is updated";
+                case "user.deleted" -> "User successfully deleted";
+                default -> "Message about user";
             };
-            String msg = "Юзер з id #" + userEvent.getUserId() + " і з username #" + userEvent.getUsername() +
-                    " створено/оновлено роль/видалено";
+            String msg = "User with id #" + userEvent.getUserId() + " and username #" + userEvent.getUsername() +
+                    " created/role updated/deleted";
 
             NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com",subject,msg);//пошта заглушка
 
             notificationService.sendNotification(request);
 
-            System.out.println("User event оброблено: " + userEvent.getEventType());
+            System.out.println("User event processed: " + userEvent.getEventType());
 
         } catch (Exception e) {
             throw new KafkaMessageReceiveException("Failed to receive user event" , e);
