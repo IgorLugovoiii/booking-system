@@ -33,10 +33,11 @@ public class UserServiceTest {
 
     @BeforeEach
     void setUp(){
-        user = new User();
-        user.setId(1L);
-        user.setUsername("john");
-        user.setRole(Role.USER);
+        user = User.builder()
+                .id(1L)
+                .username("john")
+                .role(Role.USER)
+                .build();
     }
 
     @Test

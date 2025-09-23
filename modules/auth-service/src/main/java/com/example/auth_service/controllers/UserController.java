@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,14 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/users")
 @Tag(name = "User controller", description = "Controller for managing users")
 public class UserController {
     private final UserService userService;
-    @Autowired
-    public UserController(UserService userService){
-        this.userService = userService;
-    }
 
     @Operation(summary = "Get all users")
     @ApiResponses({
@@ -78,7 +75,7 @@ public class UserController {
     })
     public ResponseEntity<Void> deleteUserById(
             @Parameter(description = "ID of the user to delete", example = "1")
-                                                   @PathVariable Long id) throws JsonProcessingException {
+            @PathVariable Long id) throws JsonProcessingException {
         userService.deleteUserById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

@@ -41,17 +41,19 @@ public class AuthServiceTest {
 
     @Test
     void registration_shouldReturnAuthResponseWithToken() throws JsonProcessingException {
-        RegisterRequest request = new RegisterRequest();
-        request.setUsername("john");
-        request.setEmail("john@example.com");
-        request.setPassword("password");
+        RegisterRequest request = RegisterRequest.builder()
+                .username("john")
+                .email("john@example.com")
+                .password("password")
+                .build();
 
-        User savedUser = new User();
-        savedUser.setId(1L);
-        savedUser.setUsername("john");
-        savedUser.setEmail("john@example.com");
-        savedUser.setRole(Role.USER);
-        savedUser.setPassword("encodedPassword");
+        User savedUser = User.builder()
+                .id(1L)
+                .username("john")
+                .email("john@example.com")
+                .role(Role.USER)
+                .password("encodedPassword")
+                .build();
 
         when(bCryptPasswordEncoder.encode("password")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
@@ -65,14 +67,16 @@ public class AuthServiceTest {
 
     @Test
     void authenticate_shouldReturnAuthResponseWithToken() {
-        AuthRequest authRequest = new AuthRequest();
-        authRequest.setUsername("john");
-        authRequest.setPassword("password");
+        AuthRequest authRequest = AuthRequest.builder()
+                .username("john")
+                .password("password")
+                .build();
 
-        User user = new User();
-        user.setUsername("john");
-        user.setPassword("encodedPassword");
-        user.setRole(Role.USER);
+        User user = User.builder()
+                .username("john")
+                .password("encodedPassword")
+                .role(Role.USER)
+                .build();
 
         when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(user));
         when(jwtUtil.generateToken(any(), any())).thenReturn("jwt-token");

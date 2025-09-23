@@ -10,7 +10,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,15 +18,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final AuthProducer authProducer;
-
-    @Autowired
-    public UserService(UserRepository userRepository, AuthProducer authProducer) {
-        this.userRepository = userRepository;
-        this.authProducer = authProducer;
-    }
 
     @Transactional(readOnly = true)
     @CircuitBreaker(name = "authService")

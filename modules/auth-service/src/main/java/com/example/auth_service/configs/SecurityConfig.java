@@ -2,7 +2,7 @@ package com.example.auth_service.configs;
 
 import com.example.auth_service.services.CustomUserDetailsService;
 import com.example.auth_service.utils.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,19 +14,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.Collection;
 import java.util.Collections;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
-
-    @Autowired
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService, JwtUtil jwtUtil){
-        this.customUserDetailsService = customUserDetailsService;
-        this.jwtUtil = jwtUtil;
-    }
 
     @Bean
     public UserDetailsService userDetailsService(){

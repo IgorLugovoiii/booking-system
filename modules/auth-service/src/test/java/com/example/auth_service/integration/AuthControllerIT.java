@@ -52,14 +52,16 @@ public class AuthControllerIT {
     public void setUp() {
         userRepository.deleteAll();
 
-        registerRequest = new RegisterRequest();
-        registerRequest.setUsername("testuser");
-        registerRequest.setPassword("password123");
-        registerRequest.setEmail("testuser2@example.com");
+        registerRequest = RegisterRequest.builder()
+                .username("testuser")
+                .password("password123")
+                .email("testuser2@example.com")
+                .build();
 
-        authRequest = new AuthRequest();
-        authRequest.setUsername("testuser");
-        authRequest.setPassword("password123");
+        authRequest = AuthRequest.builder()
+                .username("testuser")
+                .password("password123")
+                .build();
     }
 
     @Test
