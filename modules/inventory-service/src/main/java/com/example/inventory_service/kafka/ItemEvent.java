@@ -1,10 +1,12 @@
 package com.example.inventory_service.kafka;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ItemEvent {
     private String eventType;
     private Long itemId;

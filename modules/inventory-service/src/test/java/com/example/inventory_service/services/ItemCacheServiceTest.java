@@ -36,9 +36,10 @@ public class ItemCacheServiceTest {
     public void setUp() {
         itemCacheService = new ItemCacheService(redisTemplate, objectMapper);
 
-        item = new Item();
-        item.setId(1L);
-        item.setName("Test Item");
+        item = Item.builder()
+                .id(1L)
+                .name("TestItem")
+                .build();
 
         itemJson = "{\"id\":1,\"name\":\"Test Item\"}";
     }

@@ -44,42 +44,46 @@ public class ItemServiceTest {
 
     @BeforeEach
     public void setUp() {
-        item = new Item();
-        item.setId(1L);
-        item.setName("Test Item");
-        item.setDescription("Description of test item");
-        item.setCategory("Category 1");
-        item.setPrice(100.0);
-        item.setAvailable(true);
-        item.setCreatedAt(LocalDateTime.now());
-        item.setUpdatedAt(LocalDateTime.now());
+        item = Item.builder()
+                .id(1L)
+                .name("Test Item")
+                .description("Description of test item")
+                .category("Category 1")
+                .price(100.0)
+                .available(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        itemRequest = new ItemRequest();
-        itemRequest.setName("Test Item");
-        itemRequest.setDescription("Description of test item");
-        itemRequest.setCategory("Category 1");
-        itemRequest.setPrice(100.0);
-        itemRequest.setAvailable(true);
+        itemRequest = ItemRequest.builder()
+                .name("Test Item")
+                .description("Description of test item")
+                .category("Category 1")
+                .price(100.0)
+                .available(true)
+                .build();
 
-        ItemResponse itemResponse = new ItemResponse();
-        itemResponse.setId(item.getId());
-        itemResponse.setName(item.getName());
-        itemResponse.setDescription(item.getDescription());
-        itemResponse.setCategory(item.getCategory());
-        itemResponse.setPrice(item.getPrice());
-        itemResponse.setAvailable(item.isAvailable());
+        ItemResponse itemResponse = ItemResponse.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .category(item.getCategory())
+                .price(item.getPrice())
+                .available(item.isAvailable())
+                .build();
         // lenient для уникання UnnecessaryStubbingException
         lenient().when(itemMapper.toItem(any(ItemRequest.class))).thenReturn(item);
         lenient().when(itemMapper.toItemResponse(any(Item.class))).thenReturn(itemResponse);
 
-        ItemEvent itemEvent = new ItemEvent(
-                "item.created",
-                item.getId(),
-                item.getName(),
-                item.getCategory(),
-                item.isAvailable(),
-                item.getPrice()
-        );
+        ItemEvent itemEvent = ItemEvent.builder()
+                .eventType("item.created")
+                .itemId(item.getId())
+                .name(item.getName())
+                .category(item.getCategory())
+                .available(item.isAvailable())
+                .price(item.getPrice())
+                .build();
+
         //lenient() не вимагає, щоб кожен мок був використаний, а лише вимагає ті, що треба при виконані конкретного тесту
         lenient().when(itemEventMapper.toCreatedEvent(any(Item.class))).thenReturn(itemEvent);
         lenient().when(itemEventMapper.toUpdatedEvent(any(Item.class))).thenReturn(itemEvent);

@@ -53,17 +53,19 @@ public class BookingControllerIT {
     public void setup() {
         bookingRepository.deleteAll();
 
-        Booking booking1 = new Booking();
-        booking1.setUserId(1L);
-        booking1.setItemId(1L);
-        booking1.setBookingStatus(BookingStatus.PENDING);
-        booking1.setBookingDate(LocalDateTime.now().plusDays(1));
+        Booking booking1 = Booking.builder()
+                .id(1L)
+                .userId(1L)
+                .bookingStatus(BookingStatus.PENDING)
+                .bookingDate(LocalDateTime.now().plusDays(1))
+                .build();
 
-        Booking booking2 = new Booking();
-        booking2.setUserId(2L);
-        booking2.setItemId(2L);
-        booking2.setBookingStatus(BookingStatus.CONFIRMED);
-        booking2.setBookingDate(LocalDateTime.now().plusDays(2));
+        Booking booking2 = Booking.builder()
+                .userId(2L)
+                .id(2L)
+                .bookingStatus(BookingStatus.CONFIRMED)
+                .bookingDate(LocalDateTime.now().plusDays(2))
+                .build();
 
         bookingRepository.saveAll(List.of(booking1, booking2));
     }
@@ -81,10 +83,11 @@ public class BookingControllerIT {
 
     @Test
     public void shouldCreateBooking() throws Exception {
-        BookingRequest bookingRequest = new BookingRequest();
-        bookingRequest.setUserId(3L);
-        bookingRequest.setItemId(3L);
-        bookingRequest.setBookingDate(LocalDateTime.now().plusDays(3));
+        BookingRequest bookingRequest = BookingRequest.builder()
+                .userId(3L)
+                .itemId(3L)
+                .bookingDate(LocalDateTime.now().plusDays(3))
+                .build();
 
         mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)

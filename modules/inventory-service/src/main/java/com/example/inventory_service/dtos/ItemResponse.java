@@ -1,9 +1,13 @@
 package com.example.inventory_service.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class ItemResponse {
     @Schema(description = "Item id", example = "1")
     private Long id;

@@ -3,22 +3,17 @@ package com.example.inventory_service.services;
 import com.example.inventory_service.models.Item;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
 @Service
+@RequiredArgsConstructor
 public class ItemCacheService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
-
-    @Autowired
-    public ItemCacheService(RedisTemplate<String, String> redisTemplate, ObjectMapper objectMapper) {
-        this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
-    }
 
     public Item getItem(Long id) throws JsonProcessingException {
         String json = redisTemplate.opsForValue().get("item:" + id);
@@ -26,13 +21,11 @@ public class ItemCacheService {
             return null;
         }
         return objectMapper.readValue(json, Item.class);
-
     }
 
     public void cacheItem(Item item) throws JsonProcessingException {
         String json = objectMapper.writeValueAsString(item);
         redisTemplate.opsForValue().set("item:" + item.getId(), json, Duration.ofMinutes(10));
-
     }
 
     public void evictItem(Long id) {

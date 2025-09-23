@@ -2,7 +2,6 @@ package com.example.inventory_service.services;
 
 import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
-import com.example.inventory_service.kafka.ItemEvent;
 import com.example.inventory_service.kafka.ItemProducer;
 import com.example.inventory_service.mappers.ItemEventMapper;
 import com.example.inventory_service.mappers.ItemMapper;
@@ -13,7 +12,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,23 +20,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ItemService {
     private final ItemRepository itemRepository;
     private final ItemProducer itemProducer;
     private final ItemCacheService itemCacheService;
     private final ItemMapper itemMapper;
     private final ItemEventMapper itemEventMapper;
-
-    @Autowired
-    public ItemService(ItemRepository itemRepository, ItemProducer itemProducer,
-                       ItemCacheService itemCacheService, ItemMapper itemMapper,
-                       ItemEventMapper itemEventMapper) {
-        this.itemRepository = itemRepository;
-        this.itemProducer = itemProducer;
-        this.itemCacheService = itemCacheService;
-        this.itemMapper = itemMapper;
-        this.itemEventMapper = itemEventMapper;
-    }
 
     @Transactional(readOnly = true)
     @CircuitBreaker(name = "itemService")

@@ -42,25 +42,27 @@ public class ItemControllerIT {
                     .withPassword("test");
 
     @DynamicPropertySource
-    private static void properties(DynamicPropertyRegistry registry){
+    private static void properties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
     }
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         itemRepository.deleteAll();
 
-        Item item1 = new Item();
-        item1.setName("Book");
-        item1.setCategory("Books");
-        item1.setPrice(25.0);
+        Item item1 = Item.builder()
+                .name("Book")
+                .category("Books")
+                .price(25.0)
+                .build();
 
-        Item item2 = new Item();
-        item2.setName("Book2");
-        item2.setCategory("Books");
-        item2.setPrice(1000.0);
+        Item item2 = Item.builder()
+                .name("Book2")
+                .category("Books")
+                .price(1000.0)
+                .build();
 
         itemRepository.save(item1);
         itemRepository.save(item2);
@@ -76,7 +78,7 @@ public class ItemControllerIT {
     }
 
     @Test
-    void shouldReturnItemById() throws Exception{
+    void shouldReturnItemById() throws Exception {
         Long id = itemRepository.findAll().getFirst().getId();
 
         mockMvc.perform(get("/api/items/" + id))
@@ -86,62 +88,63 @@ public class ItemControllerIT {
     }
 
     @Test
-    void shouldReturn404ForMissingItem() throws Exception{
+    void shouldReturn404ForMissingItem() throws Exception {
         mockMvc.perform(get("/api/items/" + 999L))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void shouldCreateItem() throws Exception{
-        Item item = new Item();
-        item.setId(3L);
-        item.setName("Item3");
-        item.setCategory("Books");
-        item.setPrice(10.00);
+    void shouldCreateItem() throws Exception {
+        Item item = Item.builder()
+                .id(3L)
+                .name("Item3")
+                .category("Books")
+                .price(10.00)
+                .build();
 
         mockMvc.perform(post("/api/items")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(item)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(item)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Item3"))
                 .andExpect(jsonPath("$.price", greaterThan(0.0)));
     }
 
     @Test
-    void shouldUpdateItem() throws Exception{
+    void shouldUpdateItem() throws Exception {
         Item item = itemRepository.findAll().getFirst();
         item.setName("Updated item");
         item.setPrice(20.00);
 
         mockMvc.perform(put("/api/items/" + item.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(item)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(item)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated item"))
                 .andExpect(jsonPath("$.price").value(20.00));
     }
 
     @Test
-    void shouldReturn404WhenUpdatingMissingItem() throws Exception{
+    void shouldReturn404WhenUpdatingMissingItem() throws Exception {
         Item item = itemRepository.findAll().getFirst();
         item.setName("Updated item");
         item.setPrice(20.00);
 
         mockMvc.perform(put("/api/items/" + 999L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(item)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(item)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void shouldDeleteItem() throws Exception{
+    void shouldDeleteItem() throws Exception {
         Long id = itemRepository.findAll().getFirst().getId();
         mockMvc.perform(delete("/api/items/" + id))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    void shouldReturn404WhenDeletingMissingItem() throws Exception{
+    void shouldReturn404WhenDeletingMissingItem() throws Exception {
         mockMvc.perform(delete("/api/items/4"))
                 .andExpect(status().isNotFound());
     }
