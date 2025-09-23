@@ -1,11 +1,13 @@
 package com.example.admin_service.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserDto {
     @Schema(description = "User id", example = "1")
     private Long id;

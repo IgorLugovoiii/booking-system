@@ -27,10 +27,13 @@ public class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        userDto = new UserDto(1L, "username", "USER");
+        userDto = UserDto.builder()
+                .id(1L)
+                .username("username")
+                .role("USER")
+                .build();
 
-        updateRoleRequest = new UpdateRoleRequest();
-        updateRoleRequest.setNewRole("ADMIN");
+        updateRoleRequest = UpdateRoleRequest.builder().newRole("ADMIN").build();
     }
 
     @Test
