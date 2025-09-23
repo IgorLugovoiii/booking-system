@@ -20,25 +20,19 @@ public class ItemCacheService {
         this.objectMapper = objectMapper;
     }
 
-    public Item getItem(Long id) {
+    public Item getItem(Long id) throws JsonProcessingException {
         String json = redisTemplate.opsForValue().get("item:" + id);
         if (json == null) {
             return null;
         }
-        try {
-            return objectMapper.readValue(json, Item.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to deserialize Item", e);
-        }
+        return objectMapper.readValue(json, Item.class);
+
     }
 
-    public void cacheItem(Item item) {
-        try {
-            String json = objectMapper.writeValueAsString(item);
-            redisTemplate.opsForValue().set("item:" + item.getId(), json, Duration.ofMinutes(10));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize Item", e);
-        }
+    public void cacheItem(Item item) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(item);
+        redisTemplate.opsForValue().set("item:" + item.getId(), json, Duration.ofMinutes(10));
+
     }
 
     public void evictItem(Long id) {

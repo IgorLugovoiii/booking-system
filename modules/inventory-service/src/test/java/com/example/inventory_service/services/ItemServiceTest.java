@@ -2,9 +2,13 @@ package com.example.inventory_service.services;
 
 import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
+import com.example.inventory_service.kafka.ItemEvent;
 import com.example.inventory_service.kafka.ItemProducer;
+import com.example.inventory_service.mappers.ItemEventMapper;
+import com.example.inventory_service.mappers.ItemMapper;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.repositories.ItemRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +32,10 @@ public class ItemServiceTest {
     private ItemProducer itemProducer;
     @Mock
     private ItemCacheService itemCacheService;
+    @Mock
+    private ItemMapper itemMapper;
+    @Mock
+    private ItemEventMapper itemEventMapper;
     @InjectMocks
     private ItemService itemService;
 
@@ -52,10 +60,34 @@ public class ItemServiceTest {
         itemRequest.setCategory("Category 1");
         itemRequest.setPrice(100.0);
         itemRequest.setAvailable(true);
+
+        ItemResponse itemResponse = new ItemResponse();
+        itemResponse.setId(item.getId());
+        itemResponse.setName(item.getName());
+        itemResponse.setDescription(item.getDescription());
+        itemResponse.setCategory(item.getCategory());
+        itemResponse.setPrice(item.getPrice());
+        itemResponse.setAvailable(item.isAvailable());
+        // lenient для уникання UnnecessaryStubbingException
+        lenient().when(itemMapper.toItem(any(ItemRequest.class))).thenReturn(item);
+        lenient().when(itemMapper.toItemResponse(any(Item.class))).thenReturn(itemResponse);
+
+        ItemEvent itemEvent = new ItemEvent(
+                "item.created",
+                item.getId(),
+                item.getName(),
+                item.getCategory(),
+                item.isAvailable(),
+                item.getPrice()
+        );
+        //lenient() не вимагає, щоб кожен мок був використаний, а лише вимагає ті, що треба при виконані конкретного тесту
+        lenient().when(itemEventMapper.toCreatedEvent(any(Item.class))).thenReturn(itemEvent);
+        lenient().when(itemEventMapper.toUpdatedEvent(any(Item.class))).thenReturn(itemEvent);
+        lenient().when(itemEventMapper.toDeletedEvent(any(Item.class))).thenReturn(itemEvent);
     }
 
     @Test
-    void testCreateItem_ShouldSaveAndReturnResponse() {
+    void testCreateItem_ShouldSaveAndReturnResponse() throws JsonProcessingException {
         when(itemRepository.save(any(Item.class))).thenReturn(item);
 
         ItemResponse response = itemService.createItem(itemRequest);
@@ -63,12 +95,12 @@ public class ItemServiceTest {
         assertNotNull(response);
         assertEquals(item.getName(), response.getName());
         verify(itemRepository, times(1)).save(any(Item.class));
-        verify(itemProducer, times(1)).sendItemCreatedEvent(any());
+        verify(itemProducer, times(1)).sendEvent(any());
         verify(itemCacheService, times(1)).cacheItem(any());
     }
 
     @Test
-    void testUpdateItem_ShouldUpdateAndSave() {
+    void testUpdateItem_ShouldUpdateAndSave() throws JsonProcessingException {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(itemRepository.save(item)).thenReturn(item);
 
@@ -77,28 +109,28 @@ public class ItemServiceTest {
         assertNotNull(response);
         assertEquals(item.getName(), response.getName());
         verify(itemRepository, times(1)).save(any());
-        verify(itemProducer, times(1)).sendItemUpdatedEvent(any());
+        verify(itemProducer, times(1)).sendEvent(any());
         verify(itemCacheService, times(1)).cacheItem(any());
     }
 
     @Test
-    void testUpdateItem_ShouldReturnException(){
+    void testUpdateItem_ShouldReturnException() {
         when(itemRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, ()->itemService.updateItem(1L,itemRequest));
+        assertThrows(EntityNotFoundException.class, () -> itemService.updateItem(1L, itemRequest));
     }
 
     @Test
-    void testUpdateItem_WhenNotFound_ShouldNotCallProducer() {
+    void testUpdateItem_WhenNotFound_ShouldNotCallProducer() throws JsonProcessingException {
         when(itemRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> itemService.updateItem(1L, itemRequest));
 
-        verify(itemProducer, never()).sendItemUpdatedEvent(any());
+        verify(itemProducer, never()).sendEvent(any());
     }
 
     @Test
-    void testDeleteItem_WhenFound() {
+    void testDeleteItem_WhenFound() throws JsonProcessingException {
         doNothing().when(itemCacheService).evictItem(1L);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         doNothing().when(itemRepository).deleteById(1L);
@@ -106,19 +138,19 @@ public class ItemServiceTest {
         itemService.deleteById(1L);
 
         verify(itemRepository, times(1)).deleteById(1L);
-        verify(itemProducer, times(1)).sendItemDeletedEvent(any());
+        verify(itemProducer, times(1)).sendEvent(any());
         verify(itemCacheService).evictItem(1L);
     }
 
     @Test
-    void testDeleteItem_WhenNotFound(){
+    void testDeleteItem_WhenNotFound() {
         when(itemRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,()->itemService.deleteById(1L));
+        assertThrows(EntityNotFoundException.class, () -> itemService.deleteById(1L));
     }
 
     @Test
-    void testFindById_WhenFound() {
+    void testFindById_WhenFound() throws JsonProcessingException {
         when(itemCacheService.getItem(1L)).thenReturn(null);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
