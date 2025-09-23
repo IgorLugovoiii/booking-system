@@ -19,11 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.logging.Logger;
 
 @Service
 public class ItemService {
-    private static final Logger logger = Logger.getLogger(ItemService.class.getName());
     private final ItemRepository itemRepository;
     private final ItemProducer itemProducer;
     private final ItemCacheService itemCacheService;

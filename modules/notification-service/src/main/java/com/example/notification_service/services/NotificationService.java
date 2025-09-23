@@ -10,11 +10,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.logging.Logger;
-
 @Service
 public class NotificationService {
-    private static final Logger logger = Logger.getLogger(NotificationService.class.getName());
     private final JavaMailSender mailSender;
 
     @Autowired
@@ -23,7 +20,7 @@ public class NotificationService {
     }
 
     @Transactional
-    @CircuitBreaker(name = "notificationService", fallbackMethod = "sendNotificationFallback")
+    @CircuitBreaker(name = "notificationService")
     @Retry(name = "notificationService")
     @RateLimiter(name = "notificationService")
     public void sendNotification(NotificationRequest notification){
@@ -35,8 +32,4 @@ public class NotificationService {
         mailSender.send(message);
     }
 
-    public void sendNotificationFallback(NotificationRequest notification, Throwable t) {
-        logger.severe("Error sending notification to " + notification.getTo() + ": " + t.getMessage());
-        throw new IllegalStateException("Fallback: can't send notification to " + notification.getTo());
-    }
 }
