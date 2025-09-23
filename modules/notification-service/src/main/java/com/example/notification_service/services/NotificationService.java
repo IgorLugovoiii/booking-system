@@ -4,20 +4,16 @@ import com.example.notification_service.dtos.NotificationRequest;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
     private final JavaMailSender mailSender;
-
-    @Autowired
-    public NotificationService(JavaMailSender mailSender){
-        this.mailSender = mailSender;
-    }
 
     @Transactional
     @CircuitBreaker(name = "notificationService")

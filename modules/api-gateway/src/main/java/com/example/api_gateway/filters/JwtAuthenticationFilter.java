@@ -1,5 +1,6 @@
 package com.example.api_gateway.filters;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import java.util.List;
 public class JwtAuthenticationFilter implements WebFilter {
     private final JwtUtil jwtUtil;
 
+    @Autowired
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }

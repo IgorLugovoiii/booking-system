@@ -5,19 +5,15 @@ import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.ItemEvent;
 import com.example.notification_service.services.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ItemEventConsumer {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final NotificationService notificationService;
-
-    @Autowired
-    public ItemEventConsumer(NotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
 
     @KafkaListener(topics = "item-events", groupId = "notification-service-group")
     public void consumeItemCreatedEvent(String message) {

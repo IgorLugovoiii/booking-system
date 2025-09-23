@@ -1,8 +1,12 @@
 package com.example.notification_service.kafka.events;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ItemEvent {
     private Long itemId;
     private String name;

@@ -53,10 +53,11 @@ public class PaymentServiceIT {
 
     @Test
     public void shouldMakePayment() throws Exception {
-        PaymentRequest paymentRequest = new PaymentRequest();
-        paymentRequest.setAmount(100.0);
-        paymentRequest.setUserId(1L);
-        paymentRequest.setBookingId(1L);
+        PaymentRequest paymentRequest = PaymentRequest.builder()
+                .amount(100.0)
+                .userId(1L)
+                .bookingId(1L)
+                .build();
 
         mockMvc.perform(post("/api/payments")
                 .contentType(MediaType.APPLICATION_JSON)

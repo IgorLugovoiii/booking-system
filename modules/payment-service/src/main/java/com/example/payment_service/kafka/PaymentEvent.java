@@ -1,12 +1,14 @@
 package com.example.payment_service.kafka;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PaymentEvent {
     private String eventType;
     private Long paymentId;

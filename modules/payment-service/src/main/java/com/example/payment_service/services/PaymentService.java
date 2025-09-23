@@ -7,29 +7,25 @@ import com.example.payment_service.kafka.PaymentProducer;
 import com.example.payment_service.models.Payment;
 import com.example.payment_service.models.enums.PaymentStatus;
 import com.example.payment_service.repositories.PaymentRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentProducer paymentProducer;
 
-    @Autowired
-    public PaymentService(PaymentRepository paymentRepository, PaymentProducer paymentProducer){
-        this.paymentRepository = paymentRepository;
-        this.paymentProducer = paymentProducer;
-    }
-
     @CircuitBreaker(name = "paymentService")
     @Retry(name = "paymentService")
     @RateLimiter(name = "paymentService")
-    public PaymentResponse processPayment(PaymentRequest paymentRequest){
+    public PaymentResponse processPayment(PaymentRequest paymentRequest) throws JsonProcessingException {
         Payment payment = new Payment();
         payment.setBookingId(paymentRequest.getBookingId());
         payment.setUserId(paymentRequest.getUserId());

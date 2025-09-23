@@ -2,13 +2,17 @@ package com.example.payment_service.models;
 
 import com.example.payment_service.models.enums.PaymentStatus;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
 @Table(name = "payments")
-@Data
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

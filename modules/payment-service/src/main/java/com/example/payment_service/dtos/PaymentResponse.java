@@ -2,13 +2,15 @@ package com.example.payment_service.dtos;
 
 import com.example.payment_service.models.enums.PaymentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PaymentResponse {
     @Schema(description = "Payment id", example = "1")
     private Long paymentId;

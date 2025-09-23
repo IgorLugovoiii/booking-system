@@ -1,9 +1,13 @@
 package com.example.payment_service.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PaymentRequest {
     @Schema(description = "Booking id", example = "1")
     private Long bookingId;

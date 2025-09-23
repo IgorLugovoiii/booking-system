@@ -5,20 +5,15 @@ import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.UserEvent;
 import com.example.notification_service.services.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthEventConsumer {
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
-
-    @Autowired
-    public AuthEventConsumer(ObjectMapper objectMapper, NotificationService notificationService){
-        this.objectMapper = objectMapper;
-        this.notificationService = notificationService;
-    }
 
     @KafkaListener(topics = "auth-events", groupId = "notification-group")
     public void handleAuthEvents(String message) {

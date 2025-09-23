@@ -22,11 +22,11 @@ public class NotificationServiceTest {
 
     @Test
     void testSendNotification_shouldSendEmail() {
-        NotificationRequest notificationRequest = new NotificationRequest(
-                "test@example.com",
-                "Test Subject",
-                "Hello from test!"
-        );
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .to("test@example.com")
+                .subject("Test Subject")
+                .message("Hello from test!")
+                .build();
 
         notificationService.sendNotification(notificationRequest);
 
@@ -42,11 +42,11 @@ public class NotificationServiceTest {
 
     @Test
     void testSendNotification_shouldHandleException() {
-        NotificationRequest request = new NotificationRequest(
-                "fail@example.com",
-                "Fails",
-                "Expect exception"
-        );
+        NotificationRequest request = NotificationRequest.builder()
+                .to("fail@example.com")
+                .subject("Fails")
+                .message("Expect exception")
+                .build();
 
         doThrow(new RuntimeException("Mail server error")).when(javaMailSender).send(any(SimpleMailMessage.class));
 
