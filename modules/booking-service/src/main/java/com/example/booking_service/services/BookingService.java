@@ -13,7 +13,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,20 +21,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final BookingProducer bookingProducer;
     private final BookingMapper bookingMapper;
     private final BookingEventMapper bookingEventMapper;
-
-    @Autowired
-    public BookingService(BookingRepository bookingRepository, BookingProducer bookingProducer,
-                          BookingMapper bookingMapper, BookingEventMapper bookingEventMapper) {
-        this.bookingRepository = bookingRepository;
-        this.bookingProducer = bookingProducer;
-        this.bookingMapper = bookingMapper;
-        this.bookingEventMapper = bookingEventMapper;
-    }
 
     @Transactional
     @CircuitBreaker(name = "bookingService")

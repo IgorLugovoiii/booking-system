@@ -14,11 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.logging.Logger;
 
 @Service
 public class PaymentService {
-    private static final Logger logger = Logger.getLogger(PaymentService.class.getName());
     private final PaymentRepository paymentRepository;
     private final PaymentProducer paymentProducer;
 
@@ -28,7 +26,7 @@ public class PaymentService {
         this.paymentProducer = paymentProducer;
     }
 
-    @CircuitBreaker(name = "paymentService", fallbackMethod = "processPaymentFallback")
+    @CircuitBreaker(name = "paymentService")
     @Retry(name = "paymentService")
     @RateLimiter(name = "paymentService")
     public PaymentResponse processPayment(PaymentRequest paymentRequest){
@@ -51,10 +49,5 @@ public class PaymentService {
         ));
 
         return new PaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentDate());
-    }
-
-    public PaymentResponse processPaymentFallback(PaymentRequest paymentRequest, Throwable t) {
-        logger.severe("Error processing payment for booking " + paymentRequest.getBookingId() + ": " + t.getMessage());
-        throw new IllegalStateException("Fallback: can't process payment for booking " + paymentRequest.getBookingId());
     }
 }

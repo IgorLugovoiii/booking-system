@@ -2,11 +2,15 @@ package com.example.booking_service.models;
 
 import com.example.booking_service.models.enums.BookingStatus;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder//тільки для тестів, бо в сервісі може бути проблема через id, який автогенериться
 @Entity
 @Table(name = "bookings")
 public class Booking {

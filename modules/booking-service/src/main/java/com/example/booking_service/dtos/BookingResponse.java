@@ -2,11 +2,15 @@ package com.example.booking_service.dtos;
 
 import com.example.booking_service.models.enums.BookingStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class BookingResponse {
     @Schema(description = "Booking id", example = "1")
     private Long id;

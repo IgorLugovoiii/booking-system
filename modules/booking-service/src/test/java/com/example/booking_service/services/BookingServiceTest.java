@@ -42,41 +42,48 @@ public class BookingServiceTest {
 
     private Booking booking;
     private BookingRequest bookingRequest;
+    private BookingResponse bookingResponse;
+    private BookingEvent bookingEvent;
 
     @BeforeEach
     void setUp() {
-        bookingRequest = new BookingRequest();
-        bookingRequest.setUserId(1L);
-        bookingRequest.setItemId(1L);
-        bookingRequest.setBookingDate(LocalDateTime.now());
+        bookingRequest = BookingRequest.builder()
+                .userId(1L)
+                .itemId(1L)
+                .bookingDate(LocalDateTime.now())
+                .build();
 
-        booking = new Booking();
-        booking.setId(1L);
-        booking.setUserId(1L);
-        booking.setItemId(1L);
-        booking.setBookingDate(bookingRequest.getBookingDate());
-        booking.setBookingStatus(BookingStatus.PENDING);
-        booking.setCreatedAt(LocalDateTime.now());
-        booking.setUpdatedAt(LocalDateTime.now());
+        booking = Booking.builder()
+                .id(1L)
+                .userId(1L)
+                .itemId(1L)
+                .bookingDate(bookingRequest.getBookingDate())
+                .bookingStatus(BookingStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        BookingResponse response = new BookingResponse();
-        response.setId(booking.getId());
-        response.setUserId(booking.getUserId());
-        response.setItemId(booking.getItemId());
-        response.setBookingDate(booking.getBookingDate());
-        response.setStatus(booking.getBookingStatus());
+
+        bookingResponse = BookingResponse.builder()
+                .id(booking.getId())
+                .userId(booking.getUserId())
+                .itemId(booking.getItemId())
+                .bookingDate(booking.getBookingDate())
+                .status(booking.getBookingStatus())
+                .build();
 
         // lenient для уникання UnnecessaryStubbingException
         lenient().when(bookingMapper.toBooking(any(BookingRequest.class))).thenReturn(booking);
-        lenient().when(bookingMapper.toBookingResponse(any(Booking.class))).thenReturn(response);
+        lenient().when(bookingMapper.toBookingResponse(any(Booking.class))).thenReturn(bookingResponse);
 
-        BookingEvent bookingEvent = new BookingEvent(
-                "booking.created",
-                booking.getId(),
-                booking.getUserId(),
-                booking.getItemId(),
-                booking.getBookingDate()
-        );
+        bookingEvent = BookingEvent.builder()
+                .eventType("booking.created")
+                .bookingId(booking.getId())
+                .userId(booking.getUserId())
+                .itemId(booking.getItemId())
+                .bookingTime(booking.getBookingDate())
+                .build();
+
         //lenient() не вимагає, щоб кожен мок був використаний, а лише вимагає ті, що треба при виконані конкретного тесту
         lenient().when(bookingEventMapper.toCreatedEvent(any(Booking.class))).thenReturn(bookingEvent);
         lenient().when(bookingEventMapper.toUpdatedEvent(any(Booking.class))).thenReturn(bookingEvent);

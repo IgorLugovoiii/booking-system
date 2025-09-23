@@ -1,11 +1,15 @@
 package com.example.booking_service.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class BookingRequest {
     @Schema(description = "User id", example = "1")
     private Long userId;

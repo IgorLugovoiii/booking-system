@@ -1,12 +1,14 @@
 package com.example.booking_service.kafka;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BookingEvent {
     private String eventType;
     private Long bookingId;
