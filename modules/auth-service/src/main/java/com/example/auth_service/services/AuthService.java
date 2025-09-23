@@ -9,6 +9,7 @@ import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
 import com.example.auth_service.utils.JwtUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -51,17 +52,17 @@ public class AuthService {
 
 
     @Transactional
-    @CircuitBreaker(name = "authService", fallbackMethod = "registrationFallback")
+    @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
-    public AuthResponse registration(RegisterRequest registerRequest) {
+    public AuthResponse registration(RegisterRequest registerRequest) throws JsonProcessingException {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
         user.setRole(Role.USER);
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         userRepository.save(user);
-        authProducer.sendUserRegisteredEvent(new UserEvent(
+        authProducer.sendEvent(new UserEvent(
                 user.getId(),
                 "user.registered",
                 user.getUsername(),
@@ -72,7 +73,7 @@ public class AuthService {
     }
 
     @Transactional
-    @CircuitBreaker(name = "authService", fallbackMethod = "loginFallback")
+    @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
     public AuthResponse authenticate(AuthRequest authRequest) {
@@ -93,15 +94,5 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return authResponse(user);
-    }
-
-    public AuthResponse registrationFallback(Throwable t) {
-        logger.severe("Fallback triggered in registrationFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can`t register user");
-    }
-
-    public AuthResponse loginFallback(Throwable t) {
-        logger.severe("Fallback triggered in LoginFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can`t login user");
     }
 }

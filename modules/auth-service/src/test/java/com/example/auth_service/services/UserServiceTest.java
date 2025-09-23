@@ -4,6 +4,7 @@ import com.example.auth_service.kafka.AuthProducer;
 import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,14 +62,14 @@ public class UserServiceTest {
     }
 
     @Test
-    void testUpdateUserRole(){
+    void testUpdateUserRole() throws JsonProcessingException {
         when(userRepository.findById(any())).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
         User updatedUser = userService.updateUserRole(user.getId(), Role.ADMIN.name());
 
         assertEquals(Role.ADMIN, updatedUser.getRole());
-        verify(authProducer, times(1)).sendUserRoleUpdateEvent(any());
+        verify(authProducer, times(1)).sendEvent(any());
     }
 
     @Test
@@ -80,23 +81,23 @@ public class UserServiceTest {
     }
 
     @Test
-    void testDeleteUserById(){
+    void testDeleteUserById() throws JsonProcessingException {
         when(userRepository.findById(any())).thenReturn(Optional.of(user));
         doNothing().when(userRepository).deleteById(any());
 
         userService.deleteUserById(user.getId());
 
         verify(userRepository, times(1)).deleteById(any());
-        verify(authProducer, times(1)).sendUserDeletedEvent(any());
+        verify(authProducer, times(1)).sendEvent(any());
     }
 
     @Test
-    void testDeleteUserById_ShouldThrowException_WhenUserNotFound() {
+    void testDeleteUserById_ShouldThrowException_WhenUserNotFound() throws JsonProcessingException {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> userService.deleteUserById(1L));
 
         verify(userRepository, never()).deleteById(any());
-        verify(authProducer, never()).sendUserDeletedEvent(any());
+        verify(authProducer, never()).sendEvent(any());
     }
 }

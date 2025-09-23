@@ -8,6 +8,7 @@ import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
 import com.example.auth_service.utils.JwtUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,7 +40,7 @@ public class AuthServiceTest {
     private AuthService authService;
 
     @Test
-    void registration_shouldReturnAuthResponseWithToken() {
+    void registration_shouldReturnAuthResponseWithToken() throws JsonProcessingException {
         RegisterRequest request = new RegisterRequest();
         request.setUsername("john");
         request.setEmail("john@example.com");
@@ -59,7 +60,7 @@ public class AuthServiceTest {
         AuthResponse response = authService.registration(request);
 
         assertEquals("jwt-token", response.getToken());
-        verify(authProducer).sendUserRegisteredEvent(any());
+        verify(authProducer).sendEvent(any());
     }
 
     @Test

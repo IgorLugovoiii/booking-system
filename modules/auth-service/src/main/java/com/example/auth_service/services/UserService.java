@@ -1,11 +1,11 @@
 package com.example.auth_service.services;
 
-import com.example.auth_service.dtos.AuthResponse;
 import com.example.auth_service.kafka.AuthProducer;
 import com.example.auth_service.kafka.UserEvent;
 import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -31,7 +31,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    @CircuitBreaker(name = "authService", fallbackMethod = "findAllFallback")
+    @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
     public List<User> findAll() {
@@ -39,7 +39,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    @CircuitBreaker(name = "authService", fallbackMethod = "findUserByIdFallback")
+    @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
     public Optional<User> findUserById(Long id) {
@@ -47,13 +47,13 @@ public class UserService {
     }
 
     @Transactional
-    @CircuitBreaker(name = "authService", fallbackMethod = "updateUserFallback")
+    @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
-    public User updateUserRole(Long id, String newRole) {
+    public User updateUserRole(Long id, String newRole) throws JsonProcessingException {
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         user.setRole(Role.valueOf(newRole));
-        authProducer.sendUserRoleUpdateEvent(new UserEvent(
+        authProducer.sendEvent(new UserEvent(
                 user.getId(),
                 "user.role.updated",
                 user.getUsername(),
@@ -63,37 +63,17 @@ public class UserService {
     }
 
     @Transactional
-    @CircuitBreaker(name = "authService", fallbackMethod = "deleteUserByIdFallback")
+    @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
-    public void deleteUserById(Long id) {
+    public void deleteUserById(Long id) throws JsonProcessingException {
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         userRepository.deleteById(id);
-        authProducer.sendUserDeletedEvent(new UserEvent(
+        authProducer.sendEvent(new UserEvent(
                 user.getId(),
                 "user.deleted",
                 user.getUsername(),
                 user.getRole().name()
         ));
-    }
-
-    public List<User> findAllFallback(Throwable t) {
-        logger.severe("Fallback triggered in findAllFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can`t find all users");
-    }
-
-    public Optional<User> findUserByIdFallback(Long id, Throwable t) {
-        logger.severe("Fallback triggered in findUserByIdFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can`t find user with id: " + id);
-    }
-
-    public User updateUserRoleFallback(Long id, String newRole, Throwable t) {
-        logger.severe("Fallback triggered in updateUserRoleFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can`t update role for user with id: " + id);
-    }
-
-    public void deleteUserByIdFallback(Long id, Throwable t) {
-        logger.severe("Fallback triggered in deleteUserByIdFallback: " + t.getMessage());
-        throw new IllegalStateException("Fallback: can`t delete user with id: " + id);
     }
 }
