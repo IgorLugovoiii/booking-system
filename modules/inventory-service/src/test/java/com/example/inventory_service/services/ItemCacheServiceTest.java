@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,19 +15,17 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.time.Duration;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ItemCacheServiceTest {
-
     @Mock
     private RedisTemplate<String, String> redisTemplate;
-
     @Mock
     private ValueOperations<String, String> valueOperations;
-
-    @Mock(lenient = true) // Додаємо lenient, щоб уникнути UnnecessaryStubbing
+    @Mock
     private ObjectMapper objectMapper;
+    @InjectMocks
 
     private ItemCacheService itemCacheService;
     private Item item;
@@ -45,35 +44,38 @@ public class ItemCacheServiceTest {
     }
 
     @Test
-    void testGetItem_shouldReturnItemFromCache() throws JsonProcessingException {
+    void givenItemInCache_whenGetItem_thenReturnItem() throws JsonProcessingException {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("item:1")).thenReturn(itemJson);
         when(objectMapper.readValue(itemJson, Item.class)).thenReturn(item);
 
         Item result = itemCacheService.getItem(1L);
 
-        assertNotNull(result);
-        assertEquals("Test Item", result.getName());
-        verify(valueOperations, times(1)).get("item:1");
-        verify(objectMapper, times(1)).readValue(itemJson, Item.class);
+        assertThat(result).isNotNull()
+                .extracting(Item::getName)
+                .isEqualTo("TestItem");
+        verify(valueOperations).get("item:1");
+        verify(objectMapper).readValue(itemJson, Item.class);
+        verifyNoMoreInteractions(valueOperations, objectMapper, redisTemplate);
     }
 
     @Test
-    void testCacheItem_shouldStoreItem() throws JsonProcessingException {
+    void givenItem_whenCacheItem_thenStoredInRedis() throws JsonProcessingException {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(objectMapper.writeValueAsString(item)).thenReturn(itemJson);
 
         itemCacheService.cacheItem(item);
 
-        verify(objectMapper, times(1)).writeValueAsString(item);
-        verify(valueOperations, times(1))
-                .set(eq("item:1"), eq(itemJson), eq(Duration.ofMinutes(10)));
+        verify(objectMapper).writeValueAsString(item);
+        verify(valueOperations).set(eq("item:1"), eq(itemJson), eq(Duration.ofMinutes(10)));
+        verifyNoMoreInteractions(valueOperations, objectMapper, redisTemplate);
     }
 
     @Test
-    void testEvictItem_shouldDeleteItemFromCache() {
+    void givenItemId_whenEvictItem_thenDeleteFromRedis() {
         itemCacheService.evictItem(1L);
 
-        verify(redisTemplate, times(1)).delete("item:1");
+        verify(redisTemplate).delete("item:1");
+        verifyNoMoreInteractions(valueOperations, objectMapper, redisTemplate);
     }
 }
