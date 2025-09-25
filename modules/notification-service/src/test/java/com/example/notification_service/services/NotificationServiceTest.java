@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -21,7 +21,7 @@ public class NotificationServiceTest {
     private NotificationService notificationService;
 
     @Test
-    void testSendNotification_shouldSendEmail() {
+    void givenValidNotification_whenSendNotification_thenMailSent() {
         NotificationRequest notificationRequest = NotificationRequest.builder()
                 .to("test@example.com")
                 .subject("Test Subject")
@@ -34,24 +34,25 @@ public class NotificationServiceTest {
         verify(javaMailSender, times(1)).send(messageCaptor.capture());
 
         SimpleMailMessage sentMessage = messageCaptor.getValue();
-        assertNotNull(sentMessage.getTo());
-        assertEquals("test@example.com", sentMessage.getTo()[0]);
-        assertEquals("Test Subject", sentMessage.getSubject());
-        assertEquals("Hello from test!", sentMessage.getText());
+        assertThat(sentMessage.getTo()).containsExactly("test@example.com");
+        assertThat(sentMessage.getSubject()).isEqualTo("Test Subject");
+        assertThat(sentMessage.getText()).isEqualTo("Hello from test!");
     }
 
     @Test
-    void testSendNotification_shouldHandleException() {
+    void givenMailSenderThrowsException_whenSendNotification_thenExceptionPropagated() {
         NotificationRequest request = NotificationRequest.builder()
                 .to("fail@example.com")
                 .subject("Fails")
                 .message("Expect exception")
                 .build();
 
-        doThrow(new RuntimeException("Mail server error")).when(javaMailSender).send(any(SimpleMailMessage.class));
+        doThrow(new RuntimeException("Mail server error"))
+                .when(javaMailSender).send(any(SimpleMailMessage.class));
 
-        assertThrows(RuntimeException.class, () -> notificationService.sendNotification(request));
-
+        assertThatThrownBy(() -> notificationService.sendNotification(request))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Mail server error");
         verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
     }
 }

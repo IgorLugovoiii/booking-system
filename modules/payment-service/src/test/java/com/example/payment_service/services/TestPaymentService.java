@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,16 +51,84 @@ public class TestPaymentService {
     }
 
     @Test
-    void testProcessPayment_ShouldSaveAndSendEven() throws JsonProcessingException {
-        when(paymentRepository.save(any())).thenReturn(payment);
+    void givenValidPayment_whenProcessingPayment_thenMakesPaymentAndPaymentEventIsSend() throws JsonProcessingException {
+        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
 
-        PaymentResponse paymentResponse = paymentService.processPayment(paymentRequest);
+        PaymentResponse response = paymentService.processPayment(paymentRequest);
 
-        assertNotNull(paymentResponse);
-        assertEquals(payment.getId(), paymentResponse.getPaymentId());
-        assertEquals(PaymentStatus.SUCCESS, paymentResponse.getPaymentStatus());
+        assertThat(response)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId, PaymentResponse::getPaymentStatus)
+                .containsExactly(payment.getId(), PaymentStatus.SUCCESS);
+
+        assertThat(response.getPaymentDate()).isEqualToIgnoringNanos(payment.getPaymentDate());
 
         verify(paymentRepository, times(1)).save(any(Payment.class));
         verify(paymentProducer, times(1)).sendPaymentEvent(any(PaymentEvent.class));
+        verifyNoMoreInteractions(paymentRepository, paymentProducer);
+    }
+
+    @Test
+    void givenRepositoryThrowsException_whenProcessPayment_thenExceptionPropagated() throws JsonProcessingException {
+        when(paymentRepository.save(any(Payment.class))).thenThrow(new RuntimeException());
+
+        assertThatThrownBy(() -> paymentService.processPayment(paymentRequest))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(paymentRepository, times(1)).save(any(Payment.class));
+        verifyNoInteractions(paymentProducer);
+    }
+
+    @Test
+    void givenZeroAmount_whenProcessPayment_thenPaymentSavedWithZeroAmount() throws JsonProcessingException {
+        PaymentRequest zeroAmountRequest = PaymentRequest.builder()
+                .userId(1L)
+                .bookingId(1L)
+                .amount(0.0)
+                .build();
+
+        Payment zeroPayment = Payment.builder()
+                .id(2L)
+                .userId(1L)
+                .bookingId(1L)
+                .amount(0.0)
+                .paymentStatus(PaymentStatus.SUCCESS)
+                .paymentDate(LocalDateTime.now())
+                .build();
+
+        when(paymentRepository.save(any(Payment.class))).thenReturn(zeroPayment);
+
+        PaymentResponse response = paymentService.processPayment(zeroAmountRequest);
+
+        assertThat(response.getPaymentId()).isEqualTo(zeroPayment.getId());
+        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.SUCCESS);
+        assertThat(response.getPaymentDate()).isEqualTo(zeroPayment.getPaymentDate());
+
+        verify(paymentRepository).save(any(Payment.class));
+        verify(paymentProducer).sendPaymentEvent(any(PaymentEvent.class));
+    }
+
+    @Test
+    void givenNullUserId_whenProcessPayment_thenThrowsException() {
+        PaymentRequest invalidRequest = PaymentRequest.builder()
+                .userId(null)
+                .bookingId(1L)
+                .amount(100.0)
+                .build();
+
+        assertThatThrownBy(() -> paymentService.processPayment(invalidRequest))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void givenNullBookingId_whenProcessPayment_thenThrowsException() {
+        PaymentRequest invalidRequest = PaymentRequest.builder()
+                .userId(1L)
+                .bookingId(null)
+                .amount(100.0)
+                .build();
+
+        assertThatThrownBy(() -> paymentService.processPayment(invalidRequest))
+                .isInstanceOf(NullPointerException.class);
     }
 }

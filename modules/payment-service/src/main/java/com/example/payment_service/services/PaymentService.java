@@ -13,6 +13,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +26,7 @@ public class PaymentService {
     @CircuitBreaker(name = "paymentService")
     @Retry(name = "paymentService")
     @RateLimiter(name = "paymentService")
+    @Transactional
     public PaymentResponse processPayment(PaymentRequest paymentRequest) throws JsonProcessingException {
         Payment payment = new Payment();
         payment.setBookingId(paymentRequest.getBookingId());

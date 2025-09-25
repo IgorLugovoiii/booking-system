@@ -75,6 +75,13 @@
             <artifactId>resilience4j-spring-boot3</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.24.2</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Actuator support for metrics -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>
