@@ -1,6 +1,7 @@
 package com.example.auth_service.services;
 
 import com.example.auth_service.kafka.AuthProducer;
+import com.example.auth_service.kafka.UserEvent;
 import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -41,48 +42,86 @@ public class UserServiceTest {
     }
 
     @Test
-    void testFindAllUsers(){
+    void givenUsersExist_whenFindAll_thenReturnUserList(){
         when(userRepository.findAll()).thenReturn(List.of(user));
 
         List<User> users = userService.findAll();
 
-        assertEquals(user.getUsername(), users.getFirst().getUsername());
-        assertEquals(1, users.size());
+        assertThat(users.getFirst().getUsername()).isEqualTo(user.getUsername());
+        assertThat(users).hasSize(1);
+        verify(userRepository).findAll();
     }
 
     @Test
-    void testFindById(){
-        when(userRepository.findById(any())).thenReturn(Optional.of(user));
+    void givenNoUsers_whenFindAll_thenReturnEmptyList() {
+        when(userRepository.findAll()).thenReturn(List.of());
 
-        Optional<User> foundUser = userService.findUserById(1L);
+        List<User> users = userService.findAll();
 
-        assertNotNull(foundUser);
-        assertTrue(foundUser.isPresent());
-        assertEquals(user.getId(), foundUser.get().getId());
-        assertEquals(user.getUsername(), foundUser.get().getUsername());
+        assertThat(users).isEmpty();
+        verify(userRepository).findAll();
     }
 
     @Test
-    void testUpdateUserRole() throws JsonProcessingException {
+    void givenUserExists_whenFindById_thenReturnUser(){
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        Optional<User> foundUser = userService.findUserById(user.getId());
+
+        assertThat(foundUser).isNotEmpty().isPresent();
+        assertThat(foundUser.get().getId()).isEqualTo(user.getId()) ;
+        assertThat(foundUser.get().getUsername()).isEqualTo(user.getUsername());
+
+        verify(userRepository).findById(user.getId());
+    }
+
+    @Test
+    void givenUserDoesNotExist_whenFindById_thenReturnEmptyOptional(){
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Optional<User> foundUser = userService.findUserById(99L);
+
+        assertThat(foundUser).isEmpty();
+        verify(userRepository).findById(99L);
+    }
+
+    @Test
+    void givenUserExists_whenUpdateUserRole_thenRoleUpdatedAndEventSent() throws JsonProcessingException {
         when(userRepository.findById(any())).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
         User updatedUser = userService.updateUserRole(user.getId(), Role.ADMIN.name());
 
-        assertEquals(Role.ADMIN, updatedUser.getRole());
-        verify(authProducer, times(1)).sendEvent(any());
+        assertThat(updatedUser.getRole()).isEqualTo(Role.ADMIN);
+        verify(authProducer).sendEvent(any(UserEvent.class));
+        verify(userRepository).save(user);
     }
 
     @Test
-    void testUpdateUserRole_UserNotFound_ShouldThrowException() {
-        when(userRepository.findById(any())).thenReturn(Optional.empty());
+    void givenUserDoesNotExist_whenUpdateUserRole_thenThrowException() throws JsonProcessingException {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,
-                () -> userService.updateUserRole(99L, Role.ADMIN.name()));
+        assertThatThrownBy(() -> userService.updateUserRole(99L, Role.ADMIN.name()))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        verify(userRepository, never()).save(any());
+        verify(authProducer, never()).sendEvent(any());
+    }
+
+
+    @Test
+    void givenInvalidRole_whenUpdateUserRole_thenThrowException() throws JsonProcessingException {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> userService.updateUserRole(user.getId(), "INVALID_ROLE"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(userRepository, never()).save(any());
+        verify(authProducer, never()).sendEvent(any());
     }
 
     @Test
-    void testDeleteUserById() throws JsonProcessingException {
+    void givenUserExists_whenDeleteUser_thenDeletedAndEventSent() throws JsonProcessingException {
         when(userRepository.findById(any())).thenReturn(Optional.of(user));
         doNothing().when(userRepository).deleteById(any());
 
@@ -93,10 +132,11 @@ public class UserServiceTest {
     }
 
     @Test
-    void testDeleteUserById_ShouldThrowException_WhenUserNotFound() throws JsonProcessingException {
+    void givenUserDoesNotExist_whenDeleteUser_thenThrowException() throws JsonProcessingException {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> userService.deleteUserById(1L));
+        assertThatThrownBy(() -> userService.deleteUserById(1L))
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(userRepository, never()).deleteById(any());
         verify(authProducer, never()).sendEvent(any());

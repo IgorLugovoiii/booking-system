@@ -20,8 +20,8 @@
         </processorPath>
         <module name="auth-service" />
         <module name="payment-service" />
-        <module name="admin-service" />
         <module name="notification-service" />
+        <module name="admin-service" />
       </profile>
       <profile name="Annotation profile for booking-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />

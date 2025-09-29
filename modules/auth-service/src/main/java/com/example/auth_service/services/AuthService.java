@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,6 +45,14 @@ public class AuthService {
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
     public AuthResponse registration(RegisterRequest registerRequest) throws JsonProcessingException {
+        if(userRepository.findUserByUsername(registerRequest.getUsername()).isPresent()){
+            throw new IllegalStateException("User already exists");
+        }
+
+        if(userRepository.findUserByEmail(registerRequest.getEmail()).isPresent()){
+            throw new IllegalStateException("Email already registered");
+        }
+
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
@@ -65,6 +74,13 @@ public class AuthService {
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
     public AuthResponse authenticate(AuthRequest authRequest) {
+        if (authRequest.getUsername().isEmpty() || authRequest.getPassword().isEmpty()){
+            throw new IllegalStateException("Authentication failed");
+        }
+
+        User user = userRepository.findUserByUsername(authRequest.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -77,9 +93,6 @@ public class AuthService {
         } catch (Exception ex) {
             throw new IllegalStateException("Authentication failed", ex);
         }
-
-        User user = userRepository.findUserByUsername(authRequest.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return authResponse(user);
     }

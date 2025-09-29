@@ -20,7 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +40,7 @@ public class AuthServiceTest {
     private AuthService authService;
 
     @Test
-    void registration_shouldReturnAuthResponseWithToken() throws JsonProcessingException {
+    void givenValidRegisterRequest_whenRegistration_thenReturnAuthResponseWithToken() throws JsonProcessingException {
         RegisterRequest request = RegisterRequest.builder()
                 .username("john")
                 .email("john@example.com")
@@ -61,12 +61,13 @@ public class AuthServiceTest {
 
         AuthResponse response = authService.registration(request);
 
-        assertEquals("jwt-token", response.getToken());
+        assertThat(response.getToken()).isEqualTo("jwt-token");
         verify(authProducer).sendEvent(any());
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
-    void authenticate_shouldReturnAuthResponseWithToken() {
+    void givenValidAuthRequest_whenAuthenticate_thenReturnAuthResponseWithToken() {
         AuthRequest authRequest = AuthRequest.builder()
                 .username("john")
                 .password("password")
@@ -83,7 +84,54 @@ public class AuthServiceTest {
 
         AuthResponse response = authService.authenticate(authRequest);
 
-        assertEquals("jwt-token", response.getToken());
+        assertThat(response.getToken()).isEqualTo("jwt-token");
+        verify(userRepository).findUserByUsername("john");
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
+
+    @Test
+    void givenExistingUser_whenRegistration_thenThrowIllegalStateException() throws JsonProcessingException {
+        RegisterRequest request = RegisterRequest.builder()
+                .username("john")
+                .email("john@example.com")
+                .password("password")
+                .build();
+
+        User existingUser = User.builder()
+                .id(1L)
+                .username("john")
+                .email("john@example.com")
+                .role(Role.USER)
+                .password("encodedPassword")
+                .build();
+
+        when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(existingUser));
+
+        assertThatThrownBy(() -> authService.registration(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("User already exists");
+
+        verify(userRepository).findUserByUsername("john");
+        verify(userRepository, never()).save(any());
+        verify(authProducer, never()).sendEvent(any());
+    }
+
+    @Test
+    void givenNonExistingUser_whenAuthenticate_thenThrowEntityNotFoundException() {
+        AuthRequest authRequest = AuthRequest.builder()
+                .username("john")
+                .password("password")
+                .build();
+
+        when(userRepository.findUserByUsername("john")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.authenticate(authRequest))
+                .isInstanceOf(jakarta.persistence.EntityNotFoundException.class)
+                .hasMessage("User not found");
+
+        verify(userRepository).findUserByUsername("john");
+        verify(authenticationManager, never()).authenticate(any());
+        verify(jwtUtil, never()).generateToken(any(), any());
+    }
+
 }

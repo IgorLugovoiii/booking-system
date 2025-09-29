@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AdminServiceTest {
@@ -37,32 +37,63 @@ public class AdminServiceTest {
     }
 
     @Test
-    public void testGetAllUsers() {
+    public void givenUsersExist_whenGetAllUsers_thenReturnUsers() {
         when(authServiceClient.getAllUsers()).thenReturn(List.of(userDto));
 
         List<UserDto> users = adminService.getAllUsers();
 
-        assertNotNull(users);
-        assertEquals(userDto.getUsername(), users.getFirst().getUsername());
-        assertEquals(1, users.size());
-        verify(authServiceClient, times(1)).getAllUsers();
+        assertThat(users).isNotEmpty().hasSize(1);
+        assertThat(users.getFirst().getUsername()).isEqualTo(userDto.getUsername());
+        assertThat(users.size()).isEqualTo(1);
+
+        verify(authServiceClient).getAllUsers();
     }
 
     @Test
-    public void testUpdateUserRole() {
-        doNothing().when(authServiceClient).updateUserRole(1L, updateRoleRequest);
+    public void givenValidRequest_whenUpdateUserRole_thenDelegatesToClient() {
+        doNothing().when(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
 
-        adminService.updateUserRole(1L, updateRoleRequest);
+        adminService.updateUserRole(userDto.getId(), updateRoleRequest);
 
-        verify(authServiceClient, times(1)).updateUserRole(1L, updateRoleRequest);
+        verify(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
     }
 
     @Test
-    public void testDeleteUserById() {
-        doNothing().when(authServiceClient).deleteUser(1L);
+    public void givenValidId_whenDeleteUserById_thenDelegatesToClient() {
+        doNothing().when(authServiceClient).deleteUser(userDto.getId());
 
-        adminService.deleteUserById(1L);
+        adminService.deleteUserById(userDto.getId());
 
-        verify(authServiceClient, times(1)).deleteUser(1L);
+        verify(authServiceClient).deleteUser(userDto.getId());
+    }
+
+    @Test
+    public void givenClientThrows_whenGetAllUsers_thenPropagatesException(){
+        when(authServiceClient.getAllUsers()).thenThrow(new RuntimeException());
+
+        assertThatThrownBy(()->adminService.getAllUsers())
+                .isInstanceOf(RuntimeException.class);
+
+        verify(authServiceClient).getAllUsers();
+    }
+
+    @Test
+    public void givenClientThrows_whenUpdateUserRole_thenPropagatesException(){
+        doThrow(new RuntimeException()).when(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
+
+        assertThatThrownBy(() -> adminService.updateUserRole(userDto.getId(), updateRoleRequest))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
+    }
+
+    @Test
+    public void givenClientThrows_whenDeleteUserById_thenPropagatesException(){
+        doThrow(new RuntimeException()).when(authServiceClient).deleteUser(userDto.getId());
+
+        assertThatThrownBy(() -> adminService.deleteUserById(userDto.getId()))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(authServiceClient).deleteUser(userDto.getId());
     }
 }
