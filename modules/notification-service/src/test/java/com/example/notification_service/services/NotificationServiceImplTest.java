@@ -1,6 +1,7 @@
 package com.example.notification_service.services;
 
 import com.example.notification_service.dtos.NotificationRequest;
+import com.example.notification_service.services.impl.NotificationServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -14,11 +15,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class NotificationServiceTest {
+public class NotificationServiceImplTest {
     @Mock
     private JavaMailSender javaMailSender;
     @InjectMocks
-    private NotificationService notificationService;
+    private NotificationServiceImpl notificationServiceImpl;
 
     @Test
     void givenValidNotification_whenSendNotification_thenMailSent() {
@@ -28,7 +29,7 @@ public class NotificationServiceTest {
                 .message("Hello from test!")
                 .build();
 
-        notificationService.sendNotification(notificationRequest);
+        notificationServiceImpl.sendNotification(notificationRequest);
 
         ArgumentCaptor<SimpleMailMessage> messageCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(javaMailSender, times(1)).send(messageCaptor.capture());
@@ -50,7 +51,7 @@ public class NotificationServiceTest {
         doThrow(new RuntimeException("Mail server error"))
                 .when(javaMailSender).send(any(SimpleMailMessage.class));
 
-        assertThatThrownBy(() -> notificationService.sendNotification(request))
+        assertThatThrownBy(() -> notificationServiceImpl.sendNotification(request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Mail server error");
         verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));

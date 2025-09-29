@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @Disabled
 @SpringBootTest
-class NotificationServiceApplicationTests {
+class NotificationServiceImplApplicationTests {
 
 	@Test
 	void contextLoads() {

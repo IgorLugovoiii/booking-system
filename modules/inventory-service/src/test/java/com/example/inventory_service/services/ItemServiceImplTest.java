@@ -8,6 +8,8 @@ import com.example.inventory_service.mappers.ItemEventMapper;
 import com.example.inventory_service.mappers.ItemMapper;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.repositories.ItemRepository;
+import com.example.inventory_service.services.impl.ItemCacheService;
+import com.example.inventory_service.services.impl.ItemServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
@@ -23,7 +25,7 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ItemServiceTest {
+public class ItemServiceImplTest {
     @Mock
     private ItemRepository itemRepository;
     @Mock
@@ -35,7 +37,7 @@ public class ItemServiceTest {
     @Mock
     private ItemEventMapper itemEventMapper;
     @InjectMocks
-    private ItemService itemService;
+    private ItemServiceImpl itemServiceImpl;
 
     private Item item;
     private ItemRequest itemRequest;
@@ -90,7 +92,7 @@ public class ItemServiceTest {
         when(itemEventMapper.toCreatedEvent(item)).thenReturn(itemEvent);
         when(itemMapper.toItemResponse(item)).thenReturn(itemResponse);
 
-        ItemResponse response = itemService.createItem(itemRequest);
+        ItemResponse response = itemServiceImpl.createItem(itemRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo(item.getName());
@@ -137,7 +139,7 @@ public class ItemServiceTest {
         when(itemEventMapper.toUpdatedEvent(any(Item.class))).thenReturn(itemEvent);
         when(itemMapper.toItemResponse(any(Item.class))).thenReturn(updatedResponse);
 
-        ItemResponse response = itemService.updateItem(item.getId(), updatedRequest);
+        ItemResponse response = itemServiceImpl.updateItem(item.getId(), updatedRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo(updatedRequest.getName());
@@ -163,7 +165,7 @@ public class ItemServiceTest {
 
         when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> itemService.updateItem(nonExistentId, request))
+        assertThatThrownBy(() -> itemServiceImpl.updateItem(nonExistentId, request))
                 .isInstanceOf(EntityNotFoundException.class);
 
         verify(itemRepository).findById(nonExistentId);
@@ -177,7 +179,7 @@ public class ItemServiceTest {
         doNothing().when(itemRepository).deleteById(item.getId());
         when(itemEventMapper.toDeletedEvent(item)).thenReturn(itemEvent);
 
-        itemService.deleteById(item.getId());
+        itemServiceImpl.deleteById(item.getId());
 
         verify(itemRepository).deleteById(item.getId());
         verify(itemProducer).sendEvent(any());
@@ -188,7 +190,7 @@ public class ItemServiceTest {
     void givenItemNotFound_whenDeleteById_thenThrowEntityNotFoundException() throws JsonProcessingException {
         when(itemRepository.findById(item.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(()->itemService.deleteById(item.getId()))
+        assertThatThrownBy(()-> itemServiceImpl.deleteById(item.getId()))
                 .isInstanceOf(EntityNotFoundException.class);
 
         verify(itemRepository, times(1)).findById(item.getId());
@@ -202,7 +204,7 @@ public class ItemServiceTest {
         doNothing().when(itemCacheService).cacheItem(item);
         when(itemMapper.toItemResponse(item)).thenReturn(itemResponse);
 
-        ItemResponse response = itemService.findById(item.getId());
+        ItemResponse response = itemServiceImpl.findById(item.getId());
 
         assertThat(response).isEqualTo(itemResponse);
         verify(itemCacheService).getItem(item.getId());
@@ -215,7 +217,7 @@ public class ItemServiceTest {
         when(itemCacheService.getItem(item.getId())).thenReturn(item);
         when(itemMapper.toItemResponse(item)).thenReturn(itemResponse);
 
-        ItemResponse response = itemService.findById(item.getId());
+        ItemResponse response = itemServiceImpl.findById(item.getId());
 
         assertThat(response).isEqualTo(itemResponse);
         verify(itemCacheService).getItem(item.getId());
@@ -227,7 +229,7 @@ public class ItemServiceTest {
         when(itemCacheService.getItem(item.getId())).thenReturn(null);
         when(itemRepository.findById(item.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(()->itemService.findById(item.getId()))
+        assertThatThrownBy(()-> itemServiceImpl.findById(item.getId()))
                 .isInstanceOf(EntityNotFoundException.class);
 
         verify(itemCacheService).getItem(item.getId());
@@ -240,7 +242,7 @@ public class ItemServiceTest {
         when(itemRepository.findAll()).thenReturn(List.of(item));
         when(itemMapper.toItemResponse(item)).thenReturn(itemResponse);
 
-        List<ItemResponse> response = itemService.findAll();
+        List<ItemResponse> response = itemServiceImpl.findAll();
 
         assertThat(response).hasSize(1);
         assertThat(response.getFirst()).isEqualTo(itemResponse);
@@ -252,7 +254,7 @@ public class ItemServiceTest {
     void givenEmptyRepository_whenFindAll_thenReturnEmptyList() {
         when(itemRepository.findAll()).thenReturn(List.of());
 
-        List<ItemResponse> response = itemService.findAll();
+        List<ItemResponse> response = itemServiceImpl.findAll();
 
         assertThat(response).isEmpty();
         verify(itemRepository).findAll();

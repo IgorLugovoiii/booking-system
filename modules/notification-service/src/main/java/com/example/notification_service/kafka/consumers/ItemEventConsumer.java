@@ -3,7 +3,7 @@ package com.example.notification_service.kafka.consumers;
 import com.example.notification_service.dtos.NotificationRequest;
 import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.ItemEvent;
-import com.example.notification_service.services.NotificationService;
+import com.example.notification_service.services.api.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;

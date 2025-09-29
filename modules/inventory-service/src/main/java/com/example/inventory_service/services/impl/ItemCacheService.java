@@ -1,4 +1,4 @@
-package com.example.inventory_service.services;
+package com.example.inventory_service.services.impl;
 
 import com.example.inventory_service.models.Item;
 import com.fasterxml.jackson.core.JsonProcessingException;

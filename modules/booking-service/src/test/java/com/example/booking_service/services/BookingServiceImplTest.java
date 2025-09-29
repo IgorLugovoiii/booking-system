@@ -9,6 +9,7 @@ import com.example.booking_service.mapper.BookingMapper;
 import com.example.booking_service.models.Booking;
 import com.example.booking_service.models.enums.BookingStatus;
 import com.example.booking_service.repositories.BookingRepository;
+import com.example.booking_service.services.impl.BookingServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BookingServiceTest {
+public class BookingServiceImplTest {
     @Mock
     private BookingRepository bookingRepository;
     @Mock
@@ -37,7 +38,7 @@ public class BookingServiceTest {
     private BookingEventMapper bookingEventMapper;
 
     @InjectMocks
-    private BookingService bookingService;
+    private BookingServiceImpl bookingServiceImpl;
 
     private Booking booking;
     private BookingRequest bookingRequest;
@@ -88,7 +89,7 @@ public class BookingServiceTest {
         when(bookingEventMapper.toCreatedEvent(booking)).thenReturn(bookingEvent);
         when(bookingMapper.toBookingResponse(booking)).thenReturn(bookingResponse);
 
-        BookingResponse response = bookingService.createBooking(bookingRequest);
+        BookingResponse response = bookingServiceImpl.createBooking(bookingRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.getUserId()).isEqualTo(bookingRequest.getUserId());
@@ -128,7 +129,7 @@ public class BookingServiceTest {
         when(bookingMapper.toBookingResponse(any())).thenReturn(updatedResponse);
         when(bookingEventMapper.toUpdatedEvent(any())).thenReturn(bookingEvent);
 
-        BookingResponse response = bookingService.updateBooking(booking.getId(), updatedRequest);
+        BookingResponse response = bookingServiceImpl.updateBooking(booking.getId(), updatedRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.getUserId()).isEqualTo(updatedRequest.getUserId());
@@ -145,7 +146,7 @@ public class BookingServiceTest {
         when(bookingRepository.save(booking)).thenReturn(booking);
         when(bookingEventMapper.toCanceledEvent(booking)).thenReturn(bookingEvent);
 
-        bookingService.cancelBooking(booking.getId());
+        bookingServiceImpl.cancelBooking(booking.getId());
 
         assertThat(booking.getBookingStatus()).isEqualTo(BookingStatus.CANCELLED);
 
@@ -158,7 +159,7 @@ public class BookingServiceTest {
         booking.setBookingStatus(BookingStatus.CANCELLED);
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
 
-        assertThatThrownBy(() -> bookingService.cancelBooking(booking.getId()))
+        assertThatThrownBy(() -> bookingServiceImpl.cancelBooking(booking.getId()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Booking is already cancelled");
 
@@ -173,7 +174,7 @@ public class BookingServiceTest {
         when(bookingRepository.save(any())).thenReturn(booking);
         when(bookingMapper.toBookingResponse(any(Booking.class))).thenReturn(bookingResponse);
 
-        BookingResponse response = bookingService.confirmBooking(booking.getId());
+        BookingResponse response = bookingServiceImpl.confirmBooking(booking.getId());
         response.setStatus(booking.getBookingStatus());
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
@@ -188,13 +189,13 @@ public class BookingServiceTest {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
 
-        assertThatThrownBy(() -> bookingService.confirmBooking(booking.getId()))
+        assertThatThrownBy(() -> bookingServiceImpl.confirmBooking(booking.getId()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Only pending bookings can be confirmed");
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        assertThatThrownBy(() -> bookingService.confirmBooking(booking.getId()))
+        assertThatThrownBy(() -> bookingServiceImpl.confirmBooking(booking.getId()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Only pending bookings can be confirmed");
     }
@@ -203,7 +204,7 @@ public class BookingServiceTest {
     void givenNonExistentBooking_whenConfirmBooking_thenThrowsEntityNotFoundException() {
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(()->bookingService.confirmBooking(booking.getId()))
+        assertThatThrownBy(()-> bookingServiceImpl.confirmBooking(booking.getId()))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -212,7 +213,7 @@ public class BookingServiceTest {
         when(bookingRepository.findByUserId(booking.getUserId())).thenReturn(List.of(booking));
         when(bookingMapper.toBookingResponse(booking)).thenReturn(bookingResponse);
 
-        List<BookingResponse> list = bookingService.getBookingByUserId(booking.getUserId());
+        List<BookingResponse> list = bookingServiceImpl.getBookingByUserId(booking.getUserId());
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().getUserId()).isEqualTo(booking.getUserId());
@@ -226,7 +227,7 @@ public class BookingServiceTest {
     void givenUserIdWithoutBookings_whenGetBookingsByUserId_thenReturnsEmptyList() {
         when(bookingRepository.findByUserId(booking.getUserId())).thenReturn(List.of());
 
-        List<BookingResponse> list = bookingService.getBookingByUserId(booking.getUserId());
+        List<BookingResponse> list = bookingServiceImpl.getBookingByUserId(booking.getUserId());
 
         assertThat(list).isEmpty();
 

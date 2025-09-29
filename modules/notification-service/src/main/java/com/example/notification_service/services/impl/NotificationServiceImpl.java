@@ -1,6 +1,7 @@
-package com.example.notification_service.services;
+package com.example.notification_service.services.impl;
 
 import com.example.notification_service.dtos.NotificationRequest;
+import com.example.notification_service.services.api.NotificationService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -12,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class NotificationServiceImpl implements NotificationService {
     private final JavaMailSender mailSender;
 
     @Transactional

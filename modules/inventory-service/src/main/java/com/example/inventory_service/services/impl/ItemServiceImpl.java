@@ -1,4 +1,4 @@
-package com.example.inventory_service.services;
+package com.example.inventory_service.services.impl;
 
 import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
@@ -7,6 +7,7 @@ import com.example.inventory_service.mappers.ItemEventMapper;
 import com.example.inventory_service.mappers.ItemMapper;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.repositories.ItemRepository;
+import com.example.inventory_service.services.api.ItemService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -21,7 +22,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ItemService {
+public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final ItemProducer itemProducer;
     private final ItemCacheService itemCacheService;

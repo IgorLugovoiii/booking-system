@@ -1,4 +1,4 @@
-package com.example.payment_service.services;
+package com.example.payment_service.services.impl;
 
 import com.example.payment_service.dtos.PaymentRequest;
 import com.example.payment_service.dtos.PaymentResponse;
@@ -7,6 +7,7 @@ import com.example.payment_service.kafka.PaymentProducer;
 import com.example.payment_service.models.Payment;
 import com.example.payment_service.models.enums.PaymentStatus;
 import com.example.payment_service.repositories.PaymentRepository;
+import com.example.payment_service.services.api.PaymentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentProducer paymentProducer;
 

@@ -7,6 +7,7 @@ import com.example.payment_service.kafka.PaymentProducer;
 import com.example.payment_service.models.Payment;
 import com.example.payment_service.models.enums.PaymentStatus;
 import com.example.payment_service.repositories.PaymentRepository;
+import com.example.payment_service.services.impl.PaymentServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,13 +22,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TestPaymentService {
+public class TestPaymentServiceImpl {
     @Mock
     private PaymentRepository paymentRepository;
     @Mock
     private PaymentProducer paymentProducer;
     @InjectMocks
-    private PaymentService paymentService;
+    private PaymentServiceImpl paymentServiceImpl;
 
     private Payment payment;
     private PaymentRequest paymentRequest;
@@ -54,7 +55,7 @@ public class TestPaymentService {
     void givenValidPayment_whenProcessingPayment_thenMakesPaymentAndPaymentEventIsSend() throws JsonProcessingException {
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
 
-        PaymentResponse response = paymentService.processPayment(paymentRequest);
+        PaymentResponse response = paymentServiceImpl.processPayment(paymentRequest);
 
         assertThat(response)
                 .isNotNull()
@@ -72,7 +73,7 @@ public class TestPaymentService {
     void givenRepositoryThrowsException_whenProcessPayment_thenExceptionPropagated() throws JsonProcessingException {
         when(paymentRepository.save(any(Payment.class))).thenThrow(new RuntimeException());
 
-        assertThatThrownBy(() -> paymentService.processPayment(paymentRequest))
+        assertThatThrownBy(() -> paymentServiceImpl.processPayment(paymentRequest))
                 .isInstanceOf(RuntimeException.class);
 
         verify(paymentRepository, times(1)).save(any(Payment.class));
@@ -98,7 +99,7 @@ public class TestPaymentService {
 
         when(paymentRepository.save(any(Payment.class))).thenReturn(zeroPayment);
 
-        PaymentResponse response = paymentService.processPayment(zeroAmountRequest);
+        PaymentResponse response = paymentServiceImpl.processPayment(zeroAmountRequest);
 
         assertThat(response.getPaymentId()).isEqualTo(zeroPayment.getId());
         assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.SUCCESS);
@@ -116,7 +117,7 @@ public class TestPaymentService {
                 .amount(100.0)
                 .build();
 
-        assertThatThrownBy(() -> paymentService.processPayment(invalidRequest))
+        assertThatThrownBy(() -> paymentServiceImpl.processPayment(invalidRequest))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -128,7 +129,7 @@ public class TestPaymentService {
                 .amount(100.0)
                 .build();
 
-        assertThatThrownBy(() -> paymentService.processPayment(invalidRequest))
+        assertThatThrownBy(() -> paymentServiceImpl.processPayment(invalidRequest))
                 .isInstanceOf(NullPointerException.class);
     }
 }

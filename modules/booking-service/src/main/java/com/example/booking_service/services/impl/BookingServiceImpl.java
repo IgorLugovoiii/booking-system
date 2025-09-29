@@ -1,4 +1,4 @@
-package com.example.booking_service.services;
+package com.example.booking_service.services.impl;
 
 import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
@@ -8,6 +8,7 @@ import com.example.booking_service.mapper.BookingMapper;
 import com.example.booking_service.models.Booking;
 import com.example.booking_service.models.enums.BookingStatus;
 import com.example.booking_service.repositories.BookingRepository;
+import com.example.booking_service.services.api.BookingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -22,7 +23,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class BookingService {
+public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final BookingProducer bookingProducer;
     private final BookingMapper bookingMapper;

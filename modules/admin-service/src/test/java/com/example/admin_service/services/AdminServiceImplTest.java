@@ -3,6 +3,7 @@ package com.example.admin_service.services;
 import com.example.admin_service.clients.AuthServiceClient;
 import com.example.admin_service.dtos.UpdateRoleRequest;
 import com.example.admin_service.dtos.UserDto;
+import com.example.admin_service.services.impl.AdminServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,11 +17,11 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AdminServiceTest {
+public class AdminServiceImplTest {
     @Mock
     private AuthServiceClient authServiceClient;
     @InjectMocks
-    private AdminService adminService;
+    private AdminServiceImpl adminServiceImpl;
 
     private UserDto userDto;
     private UpdateRoleRequest updateRoleRequest;
@@ -40,7 +41,7 @@ public class AdminServiceTest {
     public void givenUsersExist_whenGetAllUsers_thenReturnUsers() {
         when(authServiceClient.getAllUsers()).thenReturn(List.of(userDto));
 
-        List<UserDto> users = adminService.getAllUsers();
+        List<UserDto> users = adminServiceImpl.getAllUsers();
 
         assertThat(users).isNotEmpty().hasSize(1);
         assertThat(users.getFirst().getUsername()).isEqualTo(userDto.getUsername());
@@ -53,7 +54,7 @@ public class AdminServiceTest {
     public void givenValidRequest_whenUpdateUserRole_thenDelegatesToClient() {
         doNothing().when(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
 
-        adminService.updateUserRole(userDto.getId(), updateRoleRequest);
+        adminServiceImpl.updateUserRole(userDto.getId(), updateRoleRequest);
 
         verify(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
     }
@@ -62,7 +63,7 @@ public class AdminServiceTest {
     public void givenValidId_whenDeleteUserById_thenDelegatesToClient() {
         doNothing().when(authServiceClient).deleteUser(userDto.getId());
 
-        adminService.deleteUserById(userDto.getId());
+        adminServiceImpl.deleteUserById(userDto.getId());
 
         verify(authServiceClient).deleteUser(userDto.getId());
     }
@@ -71,7 +72,7 @@ public class AdminServiceTest {
     public void givenClientThrows_whenGetAllUsers_thenPropagatesException(){
         when(authServiceClient.getAllUsers()).thenThrow(new RuntimeException());
 
-        assertThatThrownBy(()->adminService.getAllUsers())
+        assertThatThrownBy(()-> adminServiceImpl.getAllUsers())
                 .isInstanceOf(RuntimeException.class);
 
         verify(authServiceClient).getAllUsers();
@@ -81,7 +82,7 @@ public class AdminServiceTest {
     public void givenClientThrows_whenUpdateUserRole_thenPropagatesException(){
         doThrow(new RuntimeException()).when(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
 
-        assertThatThrownBy(() -> adminService.updateUserRole(userDto.getId(), updateRoleRequest))
+        assertThatThrownBy(() -> adminServiceImpl.updateUserRole(userDto.getId(), updateRoleRequest))
                 .isInstanceOf(RuntimeException.class);
 
         verify(authServiceClient).updateUserRole(userDto.getId(), updateRoleRequest);
@@ -91,7 +92,7 @@ public class AdminServiceTest {
     public void givenClientThrows_whenDeleteUserById_thenPropagatesException(){
         doThrow(new RuntimeException()).when(authServiceClient).deleteUser(userDto.getId());
 
-        assertThatThrownBy(() -> adminService.deleteUserById(userDto.getId()))
+        assertThatThrownBy(() -> adminServiceImpl.deleteUserById(userDto.getId()))
                 .isInstanceOf(RuntimeException.class);
 
         verify(authServiceClient).deleteUser(userDto.getId());

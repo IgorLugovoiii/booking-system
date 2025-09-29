@@ -7,6 +7,7 @@ import com.example.auth_service.kafka.AuthProducer;
 import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
+import com.example.auth_service.services.impl.AuthServiceImpl;
 import com.example.auth_service.utils.JwtUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthServiceTest {
+public class AuthServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -37,7 +38,7 @@ public class AuthServiceTest {
     private AuthProducer authProducer;
 
     @InjectMocks
-    private AuthService authService;
+    private AuthServiceImpl authServiceImpl;
 
     @Test
     void givenValidRegisterRequest_whenRegistration_thenReturnAuthResponseWithToken() throws JsonProcessingException {
@@ -59,7 +60,7 @@ public class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(jwtUtil.generateToken(any(), any())).thenReturn("jwt-token");
 
-        AuthResponse response = authService.registration(request);
+        AuthResponse response = authServiceImpl.registration(request);
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         verify(authProducer).sendEvent(any());
@@ -82,7 +83,7 @@ public class AuthServiceTest {
         when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(user));
         when(jwtUtil.generateToken(any(), any())).thenReturn("jwt-token");
 
-        AuthResponse response = authService.authenticate(authRequest);
+        AuthResponse response = authServiceImpl.authenticate(authRequest);
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         verify(userRepository).findUserByUsername("john");
@@ -107,7 +108,7 @@ public class AuthServiceTest {
 
         when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(existingUser));
 
-        assertThatThrownBy(() -> authService.registration(request))
+        assertThatThrownBy(() -> authServiceImpl.registration(request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("User already exists");
 
@@ -125,7 +126,7 @@ public class AuthServiceTest {
 
         when(userRepository.findUserByUsername("john")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authService.authenticate(authRequest))
+        assertThatThrownBy(() -> authServiceImpl.authenticate(authRequest))
                 .isInstanceOf(jakarta.persistence.EntityNotFoundException.class)
                 .hasMessage("User not found");
 

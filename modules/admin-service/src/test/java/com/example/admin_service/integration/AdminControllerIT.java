@@ -2,7 +2,7 @@ package com.example.admin_service.integration;
 
 import com.example.admin_service.dtos.UpdateRoleRequest;
 import com.example.admin_service.dtos.UserDto;
-import com.example.admin_service.services.AdminService;
+import com.example.admin_service.services.impl.AdminServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ public class AdminControllerIT {
     private MockMvc mockMvc;
 
     @MockBean
-    private AdminService adminService;
+    private AdminServiceImpl adminServiceImpl;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -49,7 +49,7 @@ public class AdminControllerIT {
                 new UserDto(2L, "Anna", "ADMIN")
         );
 
-        when(adminService.getAllUsers()).thenReturn(users);
+        when(adminServiceImpl.getAllUsers()).thenReturn(users);
 
         mockMvc.perform(get("/api/admin/allUsers"))
                 .andExpect(status().isOk())
@@ -57,7 +57,7 @@ public class AdminControllerIT {
                         .andExpect(jsonPath("$[0].username").value("Igor"))
                         .andExpect(jsonPath("$[1].role").value("ADMIN"));
 
-        verify(adminService, times(1)).getAllUsers();
+        verify(adminServiceImpl, times(1)).getAllUsers();
     }
 
     @Test
@@ -70,14 +70,14 @@ public class AdminControllerIT {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk());
 
-        verify(adminService, times(1)).updateUserRole(eq(1L), eq(req));
+        verify(adminServiceImpl, times(1)).updateUserRole(eq(1L), eq(req));
     }
 
     @Test
     public void shouldReturn404WhenUpdatingNonexistentUser() throws Exception {
         UpdateRoleRequest req = new UpdateRoleRequest();
         req.setNewRole("USER");
-        doThrow(new EntityNotFoundException()).when(adminService).updateUserRole(eq(1L), eq(req));
+        doThrow(new EntityNotFoundException()).when(adminServiceImpl).updateUserRole(eq(1L), eq(req));
 
         mockMvc.perform(put("/api/admin/updateRole/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -90,12 +90,12 @@ public class AdminControllerIT {
         mockMvc.perform(delete("/api/admin/5"))
                 .andExpect(status().isNoContent());
 
-        verify(adminService, times(1)).deleteUserById(5L);
+        verify(adminServiceImpl, times(1)).deleteUserById(5L);
     }
 
     @Test
     public void shouldReturn404WhenDeletingNonexistentUser() throws Exception {
-        doThrow(new EntityNotFoundException()).when(adminService).deleteUserById(42L);
+        doThrow(new EntityNotFoundException()).when(adminServiceImpl).deleteUserById(42L);
 
         mockMvc.perform(delete("/api/admin/42"))
                 .andExpect(status().isNotFound());

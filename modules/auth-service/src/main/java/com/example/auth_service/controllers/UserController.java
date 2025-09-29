@@ -2,7 +2,8 @@ package com.example.auth_service.controllers;
 
 import com.example.auth_service.dtos.UpdateRoleRequest;
 import com.example.auth_service.models.User;
-import com.example.auth_service.services.UserService;
+import com.example.auth_service.services.api.UserService;
+import com.example.auth_service.services.impl.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

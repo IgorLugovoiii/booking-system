@@ -3,7 +3,7 @@ package com.example.auth_service.controllers;
 import com.example.auth_service.dtos.AuthRequest;
 import com.example.auth_service.dtos.AuthResponse;
 import com.example.auth_service.dtos.RegisterRequest;
-import com.example.auth_service.services.AuthService;
+import com.example.auth_service.services.api.AuthService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

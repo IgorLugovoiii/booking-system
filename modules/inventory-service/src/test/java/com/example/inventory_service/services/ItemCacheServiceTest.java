@@ -1,6 +1,7 @@
 package com.example.inventory_service.services;
 
 import com.example.inventory_service.models.Item;
+import com.example.inventory_service.services.impl.ItemCacheService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

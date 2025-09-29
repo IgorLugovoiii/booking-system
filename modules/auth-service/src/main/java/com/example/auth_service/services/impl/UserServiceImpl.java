@@ -1,4 +1,4 @@
-package com.example.auth_service.services;
+package com.example.auth_service.services.impl;
 
 import com.example.auth_service.kafka.AuthProducer;
 import com.example.auth_service.kafka.UserEvent;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl {
     private final UserRepository userRepository;
     private final AuthProducer authProducer;
 

@@ -1,4 +1,4 @@
-package com.example.auth_service.services;
+package com.example.auth_service.services.impl;
 
 import com.example.auth_service.dtos.AuthRequest;
 import com.example.auth_service.dtos.AuthResponse;
@@ -8,6 +8,7 @@ import com.example.auth_service.kafka.UserEvent;
 import com.example.auth_service.models.User;
 import com.example.auth_service.models.enums.Role;
 import com.example.auth_service.repositories.UserRepository;
+import com.example.auth_service.services.api.AuthService;
 import com.example.auth_service.utils.JwtUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -25,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;

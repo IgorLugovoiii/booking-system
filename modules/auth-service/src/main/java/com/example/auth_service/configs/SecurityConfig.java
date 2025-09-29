@@ -1,6 +1,6 @@
 package com.example.auth_service.configs;
 
-import com.example.auth_service.services.CustomUserDetailsService;
+import com.example.auth_service.services.impl.CustomUserDetailsService;
 import com.example.auth_service.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

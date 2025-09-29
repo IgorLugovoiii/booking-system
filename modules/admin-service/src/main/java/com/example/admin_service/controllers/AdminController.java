@@ -2,7 +2,8 @@ package com.example.admin_service.controllers;
 
 import com.example.admin_service.dtos.UpdateRoleRequest;
 import com.example.admin_service.dtos.UserDto;
-import com.example.admin_service.services.AdminService;
+import com.example.admin_service.services.api.AdminService;
+import com.example.admin_service.services.impl.AdminServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;

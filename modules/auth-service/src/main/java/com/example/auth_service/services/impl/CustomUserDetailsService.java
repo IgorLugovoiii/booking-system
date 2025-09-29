@@ -1,4 +1,4 @@
-package com.example.auth_service.services;
+package com.example.auth_service.services.impl;
 
 import com.example.auth_service.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;

@@ -2,7 +2,8 @@ package com.example.inventory_service.controllers;
 
 import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
-import com.example.inventory_service.services.ItemService;
+import com.example.inventory_service.services.api.ItemService;
+import com.example.inventory_service.services.impl.ItemServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

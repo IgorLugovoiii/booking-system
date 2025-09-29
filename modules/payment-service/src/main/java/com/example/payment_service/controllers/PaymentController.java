@@ -2,7 +2,7 @@ package com.example.payment_service.controllers;
 
 import com.example.payment_service.dtos.PaymentRequest;
 import com.example.payment_service.dtos.PaymentResponse;
-import com.example.payment_service.services.PaymentService;
+import com.example.payment_service.services.api.PaymentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

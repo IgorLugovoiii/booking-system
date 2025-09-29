@@ -1,8 +1,9 @@
-package com.example.admin_service.services;
+package com.example.admin_service.services.impl;
 
 import com.example.admin_service.clients.AuthServiceClient;
 import com.example.admin_service.dtos.UpdateRoleRequest;
 import com.example.admin_service.dtos.UserDto;
+import com.example.admin_service.services.api.AdminService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AdminService {
+public class AdminServiceImpl implements AdminService {
     private final AuthServiceClient authServiceClient;
 
     @Transactional(readOnly = true)
