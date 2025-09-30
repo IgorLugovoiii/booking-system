@@ -1,38 +1,39 @@
 package com.example.notification_service.kafka.consumers;
 
 import com.example.notification_service.dtos.NotificationRequest;
-import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.ItemEvent;
 import com.example.notification_service.services.api.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class ItemEventConsumer {
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final NotificationService notificationService;
-
-    @KafkaListener(topics = "item-events", groupId = "notification-service-group")
-    public void consumeItemCreatedEvent(String message) {
-        try {
-            ItemEvent itemEvent = objectMapper.readValue(message, ItemEvent.class);
-
-            NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com",
-                    "Event: " + itemEvent.getEventType(),
-                    "Item: " + itemEvent.getName());// замінити і зробити для зацікавлених юзерів
-
-            notificationService.sendNotification(request);
-            System.out.println("Email sent for event: " + itemEvent.getEventType());
-        } catch (Exception e) {
-            throw new KafkaMessageReceiveException("Failed to receive item event" , e);
-        }
+public class ItemEventConsumer extends BaseEventConsumer<ItemEvent> {
+    public ItemEventConsumer(ObjectMapper objectMapper, NotificationService notificationService) {
+        super(objectMapper, notificationService);
     }
 
-    private void sendNotification(ItemEvent itemEvent) {
-        // додати логіку
-        System.out.println("Sending notification for item: " + itemEvent.getName());
+    @Override
+    protected String topic() {
+        return "item-events";
+    }
+
+    @Override
+    protected Class<ItemEvent> getEventClass() {
+        return ItemEvent.class;
+    }
+
+    @Override
+    protected NotificationRequest buildNotification(ItemEvent event) {
+        String subject = switch (event.getEventType()) {
+            case "item.created" -> "Item successfully created";
+            case "item.updated" -> "Item updated";
+            case "item.deleted" -> "Item deleted";
+            default -> "Item event, something is wrong";
+        };
+
+        String msg = "Event: " + event.getEventType() + " for item with id: "
+                + event.getItemId() + " name: " + event.getName() + " and price: " + event.getPrice();
+
+        return new NotificationRequest("qeadzc4065@gmail.com", subject, msg);
     }
 }

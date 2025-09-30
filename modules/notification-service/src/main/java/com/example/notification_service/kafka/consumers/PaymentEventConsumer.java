@@ -5,36 +5,42 @@ import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.PaymentEvent;
 import com.example.notification_service.services.api.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class PaymentEventConsumer {
-    private final NotificationService notificationService;
+public class PaymentEventConsumer extends BaseEventConsumer<PaymentEvent> {
+    public PaymentEventConsumer(ObjectMapper objectMapper, NotificationService notificationService) {
+        super(objectMapper, notificationService);
+    }
 
-    @KafkaListener(topics = "payment-events", groupId = "notification-group")
-    public void handlePaymentEvent(String message) {
+    @Override
+    protected String topic() {
+        return "payment-events";
+    }
+
+    @Override
+    protected Class<PaymentEvent> getEventClass() {
+        return PaymentEvent.class;
+    }
+
+    @Override
+    protected NotificationRequest buildNotification(PaymentEvent event) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            PaymentEvent paymentEvent = objectMapper.readValue(message, PaymentEvent.class);
-            if ("payment.success".equals(paymentEvent.getEventType())) {
-                String msg = String.format(
+            String subject = switch (event.getEventType()) {
+                case "payment.successful" -> String.format(
                         "Payment successful! Price: %.2f hrn. Date: %s",
-                        paymentEvent.getAmount(),
-                        paymentEvent.getPaymentDate()
+                        event.getAmount(),
+                        event.getPaymentDate()
                 );
+                default -> "Payment failed. Something is wrong";
+            };
 
-                NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com",
-                        "payment.success",
-                        msg
-                );
+            String msg = "Event: " + event.getEventType() + " for payment with id: "
+                    + event.getPaymentId() + ", user id: " + event.getUserId() + " and price: " + event.getAmount();
 
-                notificationService.sendNotification(request);
-            }
+            return new NotificationRequest("qeadzc4065@gmail.com", "payment.success", msg);
         } catch (Exception e) {
-            throw new KafkaMessageReceiveException("Failed to receive payment event" , e);
+            throw new KafkaMessageReceiveException("Failed to receive payment event", e);
         }
     }
 }

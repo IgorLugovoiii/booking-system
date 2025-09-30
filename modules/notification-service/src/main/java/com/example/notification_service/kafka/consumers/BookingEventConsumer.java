@@ -1,41 +1,40 @@
 package com.example.notification_service.kafka.consumers;
 
 import com.example.notification_service.dtos.NotificationRequest;
-import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.BookingEvent;
 import com.example.notification_service.services.api.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class BookingEventConsumer {
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final NotificationService notificationService;
+public class BookingEventConsumer extends BaseEventConsumer<BookingEvent> {
+    public BookingEventConsumer(ObjectMapper objectMapper, NotificationService notificationService) {
+        super(objectMapper, notificationService);
+    }
 
-    @KafkaListener(topics = "booking-events", groupId = "notification-service-group")
-    public void consumeBookingEvent(String message) {
-        try {
-            BookingEvent event = objectMapper.readValue(message, BookingEvent.class);
+    @Override
+    protected String topic() {
+        return "booking-events";
+    }
 
-            String subject = switch (event.getEventType()) {
-                case "booking.created" -> "Booking created";
-                case "booking.updated" -> "Booking updated";
-                case "booking.canceled" -> "Booking canceled";
-                case "booking.confirmed" -> "Booking confirmed";
-                default -> "Message about booking";
-            };
-            String msg = "Booking #" + event.getBookingId() + " for item #" + event.getItemId() +
-                    " created/updated/deleted at: " + event.getBookingTime();
+    @Override
+    protected Class<BookingEvent> getEventClass() {
+        return BookingEvent.class;
+    }
 
-            NotificationRequest request = new NotificationRequest("qeadzc4065@gmail.com", subject, msg);// заглушка
-            notificationService.sendNotification(request);
+    @Override
+    protected NotificationRequest buildNotification(BookingEvent event) {
+        String subject = switch (event.getEventType()) {
+            case "booking.created" -> "Booking created";
+            case "booking.updated" -> "Booking updated";
+            case "booking.canceled" -> "Booking canceled";
+            case "booking.confirmed" -> "Booking confirmed";
+            default -> "Message about booking, something is wrong";
+        };
 
-            System.out.println("Booking event processed: " + event.getEventType());
-        } catch (Exception e) {
-            throw new KafkaMessageReceiveException("Failed to receive booking event" , e);
-        }
+        String msg = "Booking " + event.getBookingId() + " for item " + event.getItemId() +
+                " " + event.getEventType() +" " + event.getBookingTime();
+
+        return new NotificationRequest("qeadzc4065@gmail.com", subject, msg);
     }
 }
