@@ -14,6 +14,23 @@ spring:
           starttls:
             enable: true
 
+  kafka:
+    consumer:
+      bootstrap-servers: kafka:9092
+      group-id: notification-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+    producer:
+      bootstrap-servers: kafka:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    topics:
+      auth: auth-events
+      payment: payment-events
+      booking: booking-events
+      item: item-events
+
 management:
   endpoints:
     web:
@@ -23,18 +40,6 @@ management:
     export:
       prometheus:
         enabled: true
-
-  kafka:
-    consumer:
-      bootstrap-servers: localhost:9092
-      group-id: notification-service-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
-    producer:
-      bootstrap-servers: localhost:9092
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 resilience4j:
   circuitbreaker:
@@ -65,4 +70,5 @@ resilience4j:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+#      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/

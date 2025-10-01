@@ -1,10 +1,10 @@
-version: '3.8'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: ms_zookeeper
     ports:
       - "2181:2181"
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -12,22 +12,39 @@ services:
       - microservices-net
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:6.2.1
     container_name: ms_kafka
     ports:
       - "9092:9092"
     depends_on:
       - zookeeper
+    restart: always
     environment:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_BROKER_ID: 1
     networks:
       - microservices-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: ms_kafka_ui
+    ports:
+      - "8090:8090"
+    restart: always
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - microservices-net
+    depends_on:
+      - kafka
 
   prometheus:
     image: prom/prometheus
@@ -46,66 +63,71 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin  # Пароль для входу в Grafana
     restart: always
-#  postgres-booking:
-#    image: postgres:14
-#    container_name: postgres_booking
-#    environment:
-#      POSTGRES_DB: bookings2_db
-#      POSTGRES_USER: igor
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - "5433:5432"
-#    networks:
-#      - microservices-net
-#
-#  postgres-auth:
-#    image: postgres:14
-#    container_name: postgres_auth
-#    environment:
-#      POSTGRES_DB: auth_service_db
-#      POSTGRES_USER: igor
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - "5434:5432"
-#    networks:
-#      - microservices-net
-#
-#  postgres-admin:
-#    image: postgres:14
-#    container_name: postgres_admin
-#    environment:
-#      POSTGRES_DB: admin_service_db
-#      POSTGRES_USER: igor
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - "5435:5432"
-#    networks:
-#      - microservices-net
-#
-#  postgres-inventory:
-#    image: postgres:14
-#    container_name: postgres_inventory
-#    environment:
-#      POSTGRES_DB: inventory_db
-#      POSTGRES_USER: igor
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - "5436:5432"
-#    networks:
-#      - microservices-net
-#
-#  postgres-payment:
-#    image: postgres:14
-#    container_name: postgres_payment
-#    environment:
-#      POSTGRES_DB: payments_db
-#      POSTGRES_USER: igor
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - "5438:5432"
-#    networks:
-#      - microservices-net
 
+  postgres-booking:
+    image: postgres:16-alpine
+    container_name: postgres_booking
+    environment:
+      POSTGRES_DB: bookings_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    networks:
+      - microservices-net
+    restart: always
+
+  postgres-auth:
+    image: postgres:16-alpine
+    container_name: postgres_auth
+    environment:
+      POSTGRES_DB: auth_service_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    networks:
+      - microservices-net
+    restart: always
+
+  postgres-admin:
+    image: postgres:16-alpine
+    container_name: postgres_admin
+    environment:
+      POSTGRES_DB: admin_service_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    networks:
+      - microservices-net
+    restart: always
+
+  postgres-inventory:
+    image: postgres:16-alpine
+    container_name: postgres_inventory
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5436:5432"
+    networks:
+      - microservices-net
+    restart: always
+
+  postgres-payment:
+    image: postgres:16-alpine
+    container_name: postgres_payment
+    environment:
+      POSTGRES_DB: payments_db
+      POSTGRES_USER: igor
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5438:5432"
+    networks:
+      - microservices-net
+    restart: always
 
   redis:
     image: redis:7.2-alpine
@@ -114,15 +136,23 @@ services:
       - "6379:6379"
     networks:
       - microservices-net
+    restart: always
 
   config-server:
     build: ./modules/config-server
     ports:
       - "8888:8888"
     depends_on:
-      - eureka-server
+      eureka-server:
+        condition: service_healthy
     networks:
       - microservices-net
+    restart: always
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://config-server:8888/actuator/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   eureka-server:
     build: ./modules/eureka-server
@@ -130,14 +160,23 @@ services:
       - "8761:8761"
     networks:
       - microservices-net
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://eureka-server:8761/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
   api-gateway:
     build: ./modules/api-gateway
     ports:
       - "8080:8080"
     depends_on:
-      - eureka-server
-      - config-server
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - microservices-net
 
@@ -146,8 +185,14 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - kafka
-      - config-server
+      kafka:
+        condition: service_started
+      postgres-auth:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - microservices-net
 
@@ -156,8 +201,12 @@ services:
     ports:
       - "8084:8084"
     depends_on:
-      - kafka
-      - config-server
+      postgres-admin:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - microservices-net
 
@@ -166,8 +215,14 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - kafka
-      - config-server
+      kafka:
+        condition: service_started
+      postgres-booking:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - microservices-net
 
@@ -176,9 +231,16 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - kafka
-      - redis
-      - config-server
+      kafka:
+        condition: service_started
+      postgres-inventory:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - microservices-net
 
@@ -187,8 +249,12 @@ services:
     ports:
       - "8085:8085"
     depends_on:
-      - kafka
-      - config-server
+      kafka:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - microservices-net
 
@@ -197,11 +263,18 @@ services:
     ports:
       - "8086:8086"
     depends_on:
-      - kafka
-      - config-server
+      kafka:
+        condition: service_started
+      postgres-payment:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - microservices-net
 
 networks:
   microservices-net:
+    name: microservices-net
     driver: bridge

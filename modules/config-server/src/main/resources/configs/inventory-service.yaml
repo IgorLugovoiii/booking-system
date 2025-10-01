@@ -3,7 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/inventory_db
+#    url: jdbc:postgresql://localhost:5432/inventory_db
+    url: jdbc:postgresql://postgres_inventory:5432/inventory_db
     username: igor
     password: password
     driver-class-name: org.postgresql.Driver
@@ -14,12 +15,12 @@ spring:
 
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
 
   kafka:
     producer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: kafka:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
@@ -54,7 +55,7 @@ resilience4j:
 
   ratelimiter:
     instances:
-      userService:
+      itemService:
         limitForPeriod: 5
         limitRefreshPeriod: 10s
         timeoutDuration: 1s
@@ -62,4 +63,5 @@ resilience4j:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+#      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/

@@ -4,7 +4,9 @@ import com.example.notification_service.dtos.NotificationRequest;
 import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.PaymentEvent;
 import com.example.notification_service.services.api.NotificationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,9 +15,9 @@ public class PaymentEventConsumer extends BaseEventConsumer<PaymentEvent> {
         super(objectMapper, notificationService);
     }
 
-    @Override
-    protected String topic() {
-        return "payment-events";
+    @KafkaListener(topics = "${spring.kafka.topics.payment}", groupId = "notification-group")
+    public void consume(String message) throws JsonProcessingException {
+        super.consume(message);
     }
 
     @Override

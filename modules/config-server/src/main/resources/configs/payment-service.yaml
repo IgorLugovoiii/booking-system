@@ -3,7 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/payments_db
+#    url: jdbc:postgresql://localhost:5432/payments_db
+    url: jdbc:postgresql://postgres_payment:5432/payments_db
     username: igor
     password: password
     driver-class-name: org.postgresql.Driver
@@ -14,7 +15,7 @@ spring:
 
   kafka:
     producer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: kafka:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
@@ -49,7 +50,7 @@ resilience4j:
 
   ratelimiter:
     instances:
-      userService:
+      paymentService:
         limitForPeriod: 5
         limitRefreshPeriod: 10s
         timeoutDuration: 1s
@@ -57,4 +58,5 @@ resilience4j:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+#      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/

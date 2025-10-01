@@ -3,7 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/admin_service_db
+#    url: jdbc:postgresql://localhost:5432/admin_service_db
+    url: jdbc:postgresql://postgres_admin:5432/admin_service_db
     username: igor
     password: password
     driver-class-name: org.postgresql.Driver
@@ -52,4 +53,5 @@ resilience4j:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      #      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
