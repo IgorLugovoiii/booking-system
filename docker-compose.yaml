@@ -38,6 +38,7 @@ services:
       - "8090:8090"
     restart: always
     environment:
+      SERVER_PORT: 8090
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
@@ -65,7 +66,7 @@ services:
     restart: always
 
   postgres-booking:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: postgres_booking
     environment:
       POSTGRES_DB: bookings_db
@@ -78,7 +79,7 @@ services:
     restart: always
 
   postgres-auth:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: postgres_auth
     environment:
       POSTGRES_DB: auth_service_db
@@ -91,7 +92,7 @@ services:
     restart: always
 
   postgres-admin:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: postgres_admin
     environment:
       POSTGRES_DB: admin_service_db
@@ -104,7 +105,7 @@ services:
     restart: always
 
   postgres-inventory:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: postgres_inventory
     environment:
       POSTGRES_DB: inventory_db
@@ -117,7 +118,7 @@ services:
     restart: always
 
   postgres-payment:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: postgres_payment
     environment:
       POSTGRES_DB: payments_db
