@@ -2,6 +2,7 @@ package com.example.booking_service.controllers;
 
 import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
+import com.example.booking_service.dtos.BookingSearchParams;
 import com.example.booking_service.services.api.BookingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -84,5 +87,21 @@ public class BookingController {
             @Parameter(description = "ID of the booking to delete", example = "1")
             @PathVariable Long bookingId) throws JsonProcessingException {
         return new ResponseEntity<>(bookingService.confirmBooking(bookingId), HttpStatus.OK);
+    }
+
+    @Operation(description = "Searching bookings with different params")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Bookings found"),
+            @ApiResponse(responseCode = "403", description = "Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "None of bookings with those params not found")
+    })
+    @GetMapping("/search")
+    public ResponseEntity<Page<BookingResponse>> searchBookings(
+            BookingSearchParams bookingSearchParams,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Page<BookingResponse> bookingResponses = bookingService.searchBookings(bookingSearchParams, PageRequest.of(page,size));
+        return new ResponseEntity<>(bookingResponses,HttpStatus.OK);
     }
 }

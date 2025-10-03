@@ -2,6 +2,7 @@ package com.example.booking_service.services.impl;
 
 import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
+import com.example.booking_service.dtos.BookingSearchParams;
 import com.example.booking_service.kafka.BookingProducer;
 import com.example.booking_service.mapper.BookingEventMapper;
 import com.example.booking_service.mapper.BookingMapper;
@@ -9,12 +10,16 @@ import com.example.booking_service.models.Booking;
 import com.example.booking_service.models.enums.BookingStatus;
 import com.example.booking_service.repositories.BookingRepository;
 import com.example.booking_service.services.api.BookingService;
+import com.example.booking_service.services.utils.SpecificationUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,5 +113,16 @@ public class BookingServiceImpl implements BookingService {
         bookingProducer.sendEvent(bookingEventMapper.toConfirmedEvent(booking));
 
         return bookingMapper.toBookingResponse(bookingRepository.save(booking));
+    }
+
+    @Override
+    public Page<BookingResponse> searchBookings(BookingSearchParams bookingSearchParams, Pageable pageable) {
+        Specification<Booking> spec = Specification
+                .<Booking>where(SpecificationUtils.equal("userId", bookingSearchParams.getUserId()))
+                .and(SpecificationUtils.equal("itemId", bookingSearchParams.getItemId()))
+                .and(SpecificationUtils.equal("bookingStatus", bookingSearchParams.getStatus()))
+                .and(SpecificationUtils.between("bookingDate", bookingSearchParams.getFromDate(), bookingSearchParams.getToDate()));
+
+        return bookingRepository.findAll(spec, pageable).map(bookingMapper::toBookingResponse);
     }
 }
