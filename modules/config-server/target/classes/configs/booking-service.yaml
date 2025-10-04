@@ -56,7 +56,6 @@ resilience4j:
         limitRefreshPeriod: 10s
         timeoutDuration: 1s
 
-
 eureka:
   client:
     service-url:

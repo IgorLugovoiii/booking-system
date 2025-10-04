@@ -2,18 +2,23 @@ package com.example.inventory_service.services.impl;
 
 import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
+import com.example.inventory_service.dtos.ItemSearchParams;
 import com.example.inventory_service.kafka.ItemProducer;
 import com.example.inventory_service.mappers.ItemEventMapper;
 import com.example.inventory_service.mappers.ItemMapper;
 import com.example.inventory_service.models.Item;
 import com.example.inventory_service.repositories.ItemRepository;
 import com.example.inventory_service.services.api.ItemService;
+import com.example.inventory_service.services.utils.SpecificationUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,6 +103,17 @@ public class ItemServiceImpl implements ItemService {
 
         itemCacheService.evictItem(id);
         itemRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<ItemResponse> searchItem(ItemSearchParams itemSearchParams, Pageable pageable) {
+        Specification<Item> spec = Specification
+                .<Item>where(SpecificationUtils.iLike("name", itemSearchParams.getName()))
+                .and(SpecificationUtils.iLike("category", itemSearchParams.getCategory()))
+                .and(SpecificationUtils.between("price", itemSearchParams.getMinPrice(), itemSearchParams.getMaxPrice()))
+                .and(SpecificationUtils.equal("available", itemSearchParams.getAvailable()));
+
+        return itemRepository.findAll(spec, pageable).map(itemMapper::toItemResponse);
     }
 
 }
