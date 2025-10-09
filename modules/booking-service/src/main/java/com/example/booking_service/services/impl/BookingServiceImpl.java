@@ -43,7 +43,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
 
         Booking savedBooking = bookingRepository.save(booking);
-        sendKafkaSafely(()-> {
+        sendKafkaEventSafely(()-> {
             try {
                 bookingProducer.sendEvent(bookingEventMapper.toCreatedEvent(savedBooking));
             } catch (JsonProcessingException e) {
@@ -67,7 +67,7 @@ public class BookingServiceImpl implements BookingService {
 
         bookingRepository.save(booking);
 
-        sendKafkaSafely(()-> {
+        sendKafkaEventSafely(()-> {
             try {
                 bookingProducer.sendEvent(bookingEventMapper.toCanceledEvent(booking));
             } catch (JsonProcessingException e) {
@@ -96,7 +96,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setBookingDate(bookingRequest.getBookingDate());
         booking.setUpdatedAt(LocalDateTime.now());
 
-        sendKafkaSafely(()-> {
+        sendKafkaEventSafely(()-> {
             try {
                 bookingProducer.sendEvent(bookingEventMapper.toUpdatedEvent(booking));
             } catch (JsonProcessingException e) {
@@ -118,7 +118,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         booking.setUpdatedAt(LocalDateTime.now());
 
-        sendKafkaSafely(()->{
+        sendKafkaEventSafely(()->{
             try {
                 bookingProducer.sendEvent(bookingEventMapper.toConfirmedEvent(booking));
             } catch (JsonProcessingException e) {
@@ -144,7 +144,7 @@ public class BookingServiceImpl implements BookingService {
     @CircuitBreaker(name = "bookingService")
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
-    private void sendKafkaSafely(Runnable runnable){
+    private void sendKafkaEventSafely(Runnable runnable){
         runnable.run();
     }
 }

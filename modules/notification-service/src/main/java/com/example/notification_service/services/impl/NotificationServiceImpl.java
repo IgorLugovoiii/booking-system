@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationServiceImpl implements NotificationService {
     private final JavaMailSender mailSender;
 
-    @Transactional
     @CircuitBreaker(name = "notificationService")
     @Retry(name = "notificationService")
     @RateLimiter(name = "notificationService")

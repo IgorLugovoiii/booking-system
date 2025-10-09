@@ -24,9 +24,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentProducer paymentProducer;
 
-    @CircuitBreaker(name = "paymentService")
-    @Retry(name = "paymentService")
-    @RateLimiter(name = "paymentService")
     @Transactional
     public PaymentResponse processPayment(PaymentRequest paymentRequest) throws JsonProcessingException {
         Payment payment = new Payment();
@@ -38,15 +35,29 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment saved = paymentRepository.save(payment);
 
-        paymentProducer.sendPaymentEvent(new PaymentEvent(
-                "payment.success",
-                saved.getId(),
-                saved.getBookingId(),
-                saved.getUserId(),
-                saved.getAmount(),
-                saved.getPaymentDate()
-        ));
+        sendKafkaEventSafely(() ->
+        {
+            try {
+                paymentProducer.sendPaymentEvent(new PaymentEvent(
+                        "payment.success",
+                        saved.getId(),
+                        saved.getBookingId(),
+                        saved.getUserId(),
+                        saved.getAmount(),
+                        saved.getPaymentDate()
+                ));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         return new PaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentDate());
+    }
+
+    @CircuitBreaker(name = "paymentService")
+    @Retry(name = "paymentService")
+    @RateLimiter(name = "paymentService")
+    private void sendKafkaEventSafely(Runnable runnable) {
+        runnable.run();
     }
 }
