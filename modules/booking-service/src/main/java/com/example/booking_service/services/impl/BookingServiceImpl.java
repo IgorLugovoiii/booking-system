@@ -34,10 +34,8 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final BookingEventMapper bookingEventMapper;
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "bookingService")
-    @Retry(name = "bookingService")
-    @RateLimiter(name = "bookingService")
     public BookingResponse createBooking(BookingRequest bookingRequest) throws JsonProcessingException {
         Booking booking = bookingMapper.toBooking(bookingRequest);
         booking.setBookingStatus(BookingStatus.PENDING);
@@ -45,14 +43,18 @@ public class BookingServiceImpl implements BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
 
         Booking savedBooking = bookingRepository.save(booking);
-        bookingProducer.sendEvent(bookingEventMapper.toCreatedEvent(savedBooking));
+        sendKafkaSafely(()-> {
+            try {
+                bookingProducer.sendEvent(bookingEventMapper.toCreatedEvent(savedBooking));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
         return bookingMapper.toBookingResponse(savedBooking);
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "bookingService")
-    @Retry(name = "bookingService")
-    @RateLimiter(name = "bookingService")
     public void cancelBooking(Long bookingId) throws JsonProcessingException {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
@@ -65,21 +67,23 @@ public class BookingServiceImpl implements BookingService {
 
         bookingRepository.save(booking);
 
-        bookingProducer.sendEvent(bookingEventMapper.toCanceledEvent(booking));
+        sendKafkaSafely(()-> {
+            try {
+                bookingProducer.sendEvent(bookingEventMapper.toCanceledEvent(booking));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
-    @Transactional
-    @CircuitBreaker(name = "bookingService")
-    @Retry(name = "bookingService")
-    @RateLimiter(name = "bookingService")
+    @Override
+    @Transactional(readOnly = true)
     public List<BookingResponse> getBookingByUserId(Long userId) {
         return bookingRepository.findByUserId(userId).stream().map(bookingMapper::toBookingResponse).toList();
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "bookingService")
-    @Retry(name = "bookingService")
-    @RateLimiter(name = "bookingService")
     public BookingResponse updateBooking(Long bookingId, BookingRequest bookingRequest) throws JsonProcessingException {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
@@ -92,15 +96,19 @@ public class BookingServiceImpl implements BookingService {
         booking.setBookingDate(bookingRequest.getBookingDate());
         booking.setUpdatedAt(LocalDateTime.now());
 
-        bookingProducer.sendEvent(bookingEventMapper.toUpdatedEvent(booking));
+        sendKafkaSafely(()-> {
+            try {
+                bookingProducer.sendEvent(bookingEventMapper.toUpdatedEvent(booking));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         return bookingMapper.toBookingResponse(bookingRepository.save(booking));
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "bookingService")
-    @Retry(name = "bookingService")
-    @RateLimiter(name = "bookingService")
     public BookingResponse confirmBooking(Long bookingId) throws JsonProcessingException {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
@@ -110,12 +118,19 @@ public class BookingServiceImpl implements BookingService {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         booking.setUpdatedAt(LocalDateTime.now());
 
-        bookingProducer.sendEvent(bookingEventMapper.toConfirmedEvent(booking));
+        sendKafkaSafely(()->{
+            try {
+                bookingProducer.sendEvent(bookingEventMapper.toConfirmedEvent(booking));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         return bookingMapper.toBookingResponse(bookingRepository.save(booking));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BookingResponse> searchBookings(BookingSearchParams bookingSearchParams, Pageable pageable) {
         Specification<Booking> spec = Specification
                 .<Booking>where(SpecificationUtils.equal("userId", bookingSearchParams.getUserId()))
@@ -124,5 +139,12 @@ public class BookingServiceImpl implements BookingService {
                 .and(SpecificationUtils.between("bookingDate", bookingSearchParams.getFromDate(), bookingSearchParams.getToDate()));
 
         return bookingRepository.findAll(spec, pageable).map(bookingMapper::toBookingResponse);
+    }
+
+    @CircuitBreaker(name = "bookingService")
+    @Retry(name = "bookingService")
+    @RateLimiter(name = "bookingService")
+    private void sendKafkaSafely(Runnable runnable){
+        runnable.run();
     }
 }
