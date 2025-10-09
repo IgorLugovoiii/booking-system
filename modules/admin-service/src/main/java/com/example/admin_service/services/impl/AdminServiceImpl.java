@@ -9,36 +9,29 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@CircuitBreaker(name = "adminService")//Вимикає зовнішній сервіс при помилках
+@Retry(name = "adminService")//Повторює запити при помилках
+@RateLimiter(name = "adminService")//Обмежує кількість викликів за час
 public class AdminServiceImpl implements AdminService {
     private final AuthServiceClient authServiceClient;
 
-    @Transactional(readOnly = true)
-    @CircuitBreaker(name = "adminService")//Вимикає зовнішній сервіс при помилках
-    @Retry(name = "adminService")//Повторює запити при помилках
-    @RateLimiter(name = "adminService")//Обмежує кількість викликів за час
+    @Override
     public List<UserDto> getAllUsers() {
         return authServiceClient.getAllUsers();
     }
 
-    @Transactional
-    @CircuitBreaker(name = "adminService")
-    @Retry(name = "adminService")
-    @RateLimiter(name = "adminService")
+    @Override
     public void updateUserRole(Long id, UpdateRoleRequest updateRoleRequest) {
         authServiceClient.updateUserRole(id, updateRoleRequest);
 
     }
 
-    @Transactional
-    @CircuitBreaker(name = "adminService")
-    @Retry(name = "adminService")
-    @RateLimiter(name = "adminService")
+    @Override
     public void deleteUserById(Long id) {
         authServiceClient.deleteUser(id);
     }
