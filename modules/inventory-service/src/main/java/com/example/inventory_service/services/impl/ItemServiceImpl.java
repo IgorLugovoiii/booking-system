@@ -34,10 +34,8 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
     private final ItemEventMapper itemEventMapper;
 
+    @Override
     @Transactional(readOnly = true)
-    @CircuitBreaker(name = "itemService")
-    @Retry(name = "itemService")
-    @RateLimiter(name = "itemService")
     public ItemResponse findById(Long itemId) throws JsonProcessingException {
         Item cachedItem = itemCacheService.getItem(itemId);
         if (cachedItem != null) {
@@ -48,20 +46,16 @@ public class ItemServiceImpl implements ItemService {
         return itemMapper.toItemResponse(item);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    @CircuitBreaker(name = "itemService")
-    @Retry(name = "itemService")
-    @RateLimiter(name = "itemService")
     public List<ItemResponse> findAll() {
         return itemRepository.findAll().stream()
                 .map(itemMapper::toItemResponse)
                 .toList();
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "itemService")
-    @Retry(name = "itemService")
-    @RateLimiter(name = "itemService")
     public ItemResponse createItem(ItemRequest itemRequest) throws JsonProcessingException {
         Item item = itemMapper.toItem(itemRequest);
         item.setCreatedAt(LocalDateTime.now());
@@ -69,14 +63,18 @@ public class ItemServiceImpl implements ItemService {
 
         itemRepository.save(item);
         itemCacheService.cacheItem(item);
-        itemProducer.sendEvent(itemEventMapper.toCreatedEvent(item));
+        sendKafkaEventSafely(()-> {
+            try {
+                itemProducer.sendEvent(itemEventMapper.toCreatedEvent(item));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
         return itemMapper.toItemResponse(item);
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "itemService")
-    @Retry(name = "itemService")
-    @RateLimiter(name = "itemService")
     public ItemResponse updateItem(Long id, ItemRequest itemRequest) throws JsonProcessingException {
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         item.setName(itemRequest.getName());
@@ -88,24 +86,35 @@ public class ItemServiceImpl implements ItemService {
 
         itemRepository.save(item);
         itemCacheService.cacheItem(item);
-        itemProducer.sendEvent(itemEventMapper.toUpdatedEvent(item));
+        sendKafkaEventSafely(()-> {
+            try {
+                itemProducer.sendEvent(itemEventMapper.toUpdatedEvent(item));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
         return itemMapper.toItemResponse(item);
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "itemService")
-    @Retry(name = "itemService")
-    @RateLimiter(name = "itemService")
-    public void deleteById(Long id) throws JsonProcessingException {
+    public void deleteById(Long id)  {
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
-        itemProducer.sendEvent(itemEventMapper.toDeletedEvent(item));
+        sendKafkaEventSafely(()-> {
+            try {
+                itemProducer.sendEvent(itemEventMapper.toDeletedEvent(item));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         itemCacheService.evictItem(id);
         itemRepository.deleteById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ItemResponse> searchItem(ItemSearchParams itemSearchParams, Pageable pageable) {
         Specification<Item> spec = Specification
                 .<Item>where(SpecificationUtils.iLike("name", itemSearchParams.getName()))
@@ -116,4 +125,10 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.findAll(spec, pageable).map(itemMapper::toItemResponse);
     }
 
+    @CircuitBreaker(name = "kafkaProducer")
+    @Retry(name = "kafkaProducer")
+    @RateLimiter(name = "itemService")
+    private void sendKafkaEventSafely(Runnable runnable) {
+        runnable.run();
+    }
 }
