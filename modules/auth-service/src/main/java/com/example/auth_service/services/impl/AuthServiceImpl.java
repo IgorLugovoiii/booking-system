@@ -40,17 +40,14 @@ public class AuthServiceImpl implements AuthService {
         return authResponse;
     }
 
-
+    @Override
     @Transactional
-    @CircuitBreaker(name = "authService")
-    @Retry(name = "authService")
-    @RateLimiter(name = "authService")
     public AuthResponse registration(RegisterRequest registerRequest) throws JsonProcessingException {
-        if(userRepository.findUserByUsername(registerRequest.getUsername()).isPresent()){
+        if (userRepository.findUserByUsername(registerRequest.getUsername()).isPresent()) {
             throw new IllegalStateException("User already exists");
         }
 
-        if(userRepository.findUserByEmail(registerRequest.getEmail()).isPresent()){
+        if (userRepository.findUserByEmail(registerRequest.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already registered");
         }
 
@@ -60,22 +57,26 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(Role.USER);
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         userRepository.save(user);
-        authProducer.sendEvent(new UserEvent(
-                user.getId(),
-                "user.registered",
-                user.getUsername(),
-                user.getRole().name()
-        ));
+        sendKafkaEventSafely(() -> {
+            try {
+                authProducer.sendEvent(new UserEvent(
+                        user.getId(),
+                        "user.registered",
+                        user.getUsername(),
+                        user.getRole().name()
+                ));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         return authResponse(user);
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "authService")
-    @Retry(name = "authService")
-    @RateLimiter(name = "authService")
     public AuthResponse authenticate(AuthRequest authRequest) {
-        if (authRequest.getUsername().isEmpty() || authRequest.getPassword().isEmpty()){
+        if (authRequest.getUsername().isEmpty() || authRequest.getPassword().isEmpty()) {
             throw new IllegalStateException("Authentication failed");
         }
 
@@ -96,5 +97,12 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return authResponse(user);
+    }
+
+    @CircuitBreaker(name = "authService")
+    @Retry(name = "authService")
+    @RateLimiter(name = "authService")
+    private void sendKafkaEventSafely(Runnable runnable) {
+        runnable.run();
     }
 }

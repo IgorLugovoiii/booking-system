@@ -24,50 +24,63 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AuthProducer authProducer;
 
+    @Override
     @Transactional(readOnly = true)
-    @CircuitBreaker(name = "authService")
-    @Retry(name = "authService")
-    @RateLimiter(name = "authService")
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
+    @Override
     @Transactional(readOnly = true)
-    @CircuitBreaker(name = "authService")
-    @Retry(name = "authService")
-    @RateLimiter(name = "authService")
     public Optional<User> findUserById(Long id) {
         return userRepository.findById(id);
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "authService")
-    @Retry(name = "authService")
-    @RateLimiter(name = "authService")
     public User updateUserRole(Long id, String newRole) throws JsonProcessingException {
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         user.setRole(Role.valueOf(newRole));
-        authProducer.sendEvent(new UserEvent(
-                user.getId(),
-                "user.role.updated",
-                user.getUsername(),
-                user.getRole().name()
-        ));
+        sendKafkaEventSafely(() -> {
+            try {
+                authProducer.sendEvent(new UserEvent(
+                        user.getId(),
+                        "user.role.updated",
+                        user.getUsername(),
+                        user.getRole().name()
+                ));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         return userRepository.save(user);
     }
 
+    @Override
     @Transactional
-    @CircuitBreaker(name = "authService")
-    @Retry(name = "authService")
-    @RateLimiter(name = "authService")
     public void deleteUserById(Long id) throws JsonProcessingException {
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         userRepository.deleteById(id);
-        authProducer.sendEvent(new UserEvent(
-                user.getId(),
-                "user.deleted",
-                user.getUsername(),
-                user.getRole().name()
-        ));
+        sendKafkaEventSafely(() ->
+        {
+            try {
+                authProducer.sendEvent(new UserEvent(
+                        user.getId(),
+                        "user.deleted",
+                        user.getUsername(),
+                        user.getRole().name()
+                ));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @CircuitBreaker(name = "authService")
+    @Retry(name = "authService")
+    @RateLimiter(name = "authService")
+    private void sendKafkaEventSafely(Runnable runnable) {
+        runnable.run();
     }
 }
