@@ -6,8 +6,11 @@ import com.example.payment_service.kafka.PaymentEvent;
 import com.example.payment_service.kafka.PaymentProducer;
 import com.example.payment_service.models.Payment;
 import com.example.payment_service.models.enums.PaymentStatus;
+import com.example.payment_service.models.enums.PaymentType;
 import com.example.payment_service.repositories.PaymentRepository;
 import com.example.payment_service.services.impl.PaymentServiceImpl;
+import com.example.payment_service.services.strategy.PaymentStrategy;
+import com.example.payment_service.services.strategy.PaymentStrategyFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,113 +26,63 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TestPaymentServiceImpl {
+
     @Mock
-    private PaymentRepository paymentRepository;
+    private PaymentStrategyFactory strategyFactory;
+
     @Mock
-    private PaymentProducer paymentProducer;
+    private PaymentStrategy cardPaymentStrategy;
+
     @InjectMocks
     private PaymentServiceImpl paymentServiceImpl;
 
-    private Payment payment;
     private PaymentRequest paymentRequest;
+    private PaymentResponse paymentResponse;
 
     @BeforeEach
     void setUp() {
-        payment = Payment.builder()
-                .id(1L)
-                .userId(1L)
-                .bookingId(1L)
-                .amount(250.0)
-                .paymentStatus(PaymentStatus.SUCCESS)
-                .paymentDate(LocalDateTime.now())
-                .build();
-
         paymentRequest = PaymentRequest.builder()
                 .userId(1L)
                 .bookingId(1L)
                 .amount(250.0)
-                .build();
-    }
-
-    @Test
-    void givenValidPayment_whenProcessingPayment_thenMakesPaymentAndPaymentEventIsSend() throws JsonProcessingException {
-        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-
-        PaymentResponse response = paymentServiceImpl.processPayment(paymentRequest);
-
-        assertThat(response)
-                .isNotNull()
-                .extracting(PaymentResponse::getPaymentId, PaymentResponse::getPaymentStatus)
-                .containsExactly(payment.getId(), PaymentStatus.SUCCESS);
-
-        assertThat(response.getPaymentDate()).isEqualToIgnoringNanos(payment.getPaymentDate());
-
-        verify(paymentRepository, times(1)).save(any(Payment.class));
-        verify(paymentProducer, times(1)).sendPaymentEvent(any(PaymentEvent.class));
-        verifyNoMoreInteractions(paymentRepository, paymentProducer);
-    }
-
-    @Test
-    void givenRepositoryThrowsException_whenProcessPayment_thenExceptionPropagated() throws JsonProcessingException {
-        when(paymentRepository.save(any(Payment.class))).thenThrow(new RuntimeException());
-
-        assertThatThrownBy(() -> paymentServiceImpl.processPayment(paymentRequest))
-                .isInstanceOf(RuntimeException.class);
-
-        verify(paymentRepository, times(1)).save(any(Payment.class));
-        verifyNoInteractions(paymentProducer);
-    }
-
-    @Test
-    void givenZeroAmount_whenProcessPayment_thenPaymentSavedWithZeroAmount() throws JsonProcessingException {
-        PaymentRequest zeroAmountRequest = PaymentRequest.builder()
-                .userId(1L)
-                .bookingId(1L)
-                .amount(0.0)
+                .paymentType(PaymentType.CREDIT_CARD)
                 .build();
 
-        Payment zeroPayment = Payment.builder()
-                .id(2L)
-                .userId(1L)
-                .bookingId(1L)
-                .amount(0.0)
+        paymentResponse = PaymentResponse.builder()
+                .paymentId(1L)
                 .paymentStatus(PaymentStatus.SUCCESS)
                 .paymentDate(LocalDateTime.now())
                 .build();
-
-        when(paymentRepository.save(any(Payment.class))).thenReturn(zeroPayment);
-
-        PaymentResponse response = paymentServiceImpl.processPayment(zeroAmountRequest);
-
-        assertThat(response.getPaymentId()).isEqualTo(zeroPayment.getId());
-        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.SUCCESS);
-        assertThat(response.getPaymentDate()).isEqualTo(zeroPayment.getPaymentDate());
-
-        verify(paymentRepository).save(any(Payment.class));
-        verify(paymentProducer).sendPaymentEvent(any(PaymentEvent.class));
     }
 
     @Test
-    void givenNullUserId_whenProcessPayment_thenThrowsException() {
-        PaymentRequest invalidRequest = PaymentRequest.builder()
-                .userId(null)
-                .bookingId(1L)
-                .amount(100.0)
-                .build();
+    void givenValidPayment_whenProcessingPayment_thenUsesStrategy() throws JsonProcessingException {
+        // Мок фабрику, щоб вона повертала потрібну стратегію
+        when(strategyFactory.getStrategy(paymentRequest.getPaymentType()))
+                .thenReturn(cardPaymentStrategy);
 
-        assertThatThrownBy(() -> paymentServiceImpl.processPayment(invalidRequest))
-                .isInstanceOf(NullPointerException.class);
+        // Мок саму стратегію
+        when(cardPaymentStrategy.pay(paymentRequest)).thenReturn(paymentResponse);
+
+        PaymentResponse response = paymentServiceImpl.processPayment(paymentRequest);
+
+        assertThat(response).isEqualTo(paymentResponse);
+
+        verify(strategyFactory, times(1)).getStrategy(paymentRequest.getPaymentType());
+        verify(cardPaymentStrategy, times(1)).pay(paymentRequest);
     }
 
     @Test
-    void givenNullBookingId_whenProcessPayment_thenThrowsException() {
-        PaymentRequest invalidRequest = PaymentRequest.builder()
-                .userId(1L)
-                .bookingId(null)
-                .amount(100.0)
-                .build();
+    void givenStrategyThrowsException_thenPropagates() throws JsonProcessingException {
+        when(strategyFactory.getStrategy(paymentRequest.getPaymentType()))
+                .thenReturn(cardPaymentStrategy);
+        when(cardPaymentStrategy.pay(paymentRequest)).thenThrow(new RuntimeException("Kafka failed"));
 
-        assertThatThrownBy(() -> paymentServiceImpl.processPayment(invalidRequest))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> paymentServiceImpl.processPayment(paymentRequest))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Kafka failed");
+
+        verify(strategyFactory).getStrategy(paymentRequest.getPaymentType());
+        verify(cardPaymentStrategy).pay(paymentRequest);
     }
 }
