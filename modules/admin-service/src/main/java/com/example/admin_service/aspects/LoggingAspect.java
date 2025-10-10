@@ -2,29 +2,52 @@ package com.example.admin_service.aspects;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.Map;
 
 @Aspect
 @Component
 @Slf4j
 public class LoggingAspect {
-    @Pointcut("execution(* com.example.admin_service.services..*(..))")
-    public void appMethods(){}
+    @Around("execution(* com.example.admin..*(..))")
+    public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
+        String method = joinPoint.getSignature().toShortString();
+        String traceId = MDC.get("traceId");
+        String userId = MDC.get("userId");
 
-    @Before("appMethods()")
-    public void logBefore(JoinPoint joinPoint){
-        log.info("Method: {}, args: {}", joinPoint.getSignature(), joinPoint.getArgs());
-    }
+        Object result;
 
-    @AfterReturning(pointcut = "appMethods()", returning = "result")
-    public void logAfterReturning(JoinPoint joinPoint, Object result){
-        log.info("Method: {} with result: {}", joinPoint.getSignature(), result);
-    }
-
-    @AfterThrowing(pointcut = "appMethods()", throwing = "ex")
-    public void logAfterThrowing(JoinPoint joinPoint, Throwable ex){
-        log.error("Exception in: {}, message: {}", joinPoint.getSignature(), ex.getMessage(), ex);
+        try {
+            result = joinPoint.proceed();
+            log.info("{}", Map.of(
+                    "timestamp", Instant.now(),
+                    "service", "admin-service",
+                    "level", "INFO",
+                    "traceId", traceId,
+                    "userId", userId,
+                    "method", method,
+                    "message", "Method executed successfully",
+                    "result", result
+            ));
+        } catch (Throwable ex) {
+            log.error("{}", Map.of(
+                    "timestamp", Instant.now(),
+                    "service", "admin-service",
+                    "level", "ERROR",
+                    "traceId", traceId,
+                    "userId", userId,
+                    "method", method,
+                    "message", ex.getMessage(),
+                    "exception", ex
+            ));
+            throw ex;
+        }
+        return result;
     }
 
 }
