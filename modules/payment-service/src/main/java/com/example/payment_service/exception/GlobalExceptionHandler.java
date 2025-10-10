@@ -1,4 +1,4 @@
-package com.example.notification_service.exception;
+package com.example.payment_service.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,3 +33,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
+

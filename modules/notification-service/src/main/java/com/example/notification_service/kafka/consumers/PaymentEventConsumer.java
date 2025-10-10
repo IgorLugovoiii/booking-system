@@ -1,7 +1,6 @@
 package com.example.notification_service.kafka.consumers;
 
 import com.example.notification_service.dtos.NotificationRequest;
-import com.example.notification_service.exception.KafkaMessageReceiveException;
 import com.example.notification_service.kafka.events.PaymentEvent;
 import com.example.notification_service.services.api.NotificationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
