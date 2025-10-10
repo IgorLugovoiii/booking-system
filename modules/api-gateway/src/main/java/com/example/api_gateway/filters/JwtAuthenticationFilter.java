@@ -40,6 +40,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             String token = authHeader.substring(7);
             String username = jwtUtil.extractUsername(token);
             String role = jwtUtil.extractRole(token);
+            Long userId = jwtUtil.extractUserId(token);
 
             if (username != null && jwtUtil.validateToken(token)) {
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -47,9 +48,14 @@ public class JwtAuthenticationFilter implements WebFilter {
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );
+                // додаємо userId у хедери для інших сервісів
+                ServerHttpRequest modifiedRequest = exchange.getRequest()
+                        .mutate()
+                        .header("X-User-Id", String.valueOf(userId))
+                        .build();
 
                 SecurityContext context = new SecurityContextImpl(authentication);
-                return chain.filter(exchange)
+                return chain.filter(exchange.mutate().request(modifiedRequest).build())
                         .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
             }
         }

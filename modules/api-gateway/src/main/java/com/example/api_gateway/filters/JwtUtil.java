@@ -49,6 +49,15 @@ public class JwtUtil {
         }
     }
 
+    public Long extractUserId(String token) {
+        try {
+            return ((Number) getClaims(token).get("userId")).longValue();
+        } catch (JwtException | NullPointerException e) {
+            return null;
+        }
+    }
+
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
