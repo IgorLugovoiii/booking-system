@@ -58,7 +58,7 @@ public class AuthServiceImplTest {
 
         when(bCryptPasswordEncoder.encode("password")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(jwtUtil.generateToken(any(), any())).thenReturn("jwt-token");
+        when(jwtUtil.generateToken(any(), any(), any())).thenReturn("jwt-token");
 
         AuthResponse response = authServiceImpl.registration(request);
 
@@ -81,7 +81,7 @@ public class AuthServiceImplTest {
                 .build();
 
         when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(user));
-        when(jwtUtil.generateToken(any(), any())).thenReturn("jwt-token");
+        when(jwtUtil.generateToken(any(), any(), any())).thenReturn("jwt-token");
 
         AuthResponse response = authServiceImpl.authenticate(authRequest);
 
@@ -132,7 +132,7 @@ public class AuthServiceImplTest {
 
         verify(userRepository).findUserByUsername("john");
         verify(authenticationManager, never()).authenticate(any());
-        verify(jwtUtil, never()).generateToken(any(), any());
+        verify(jwtUtil, never()).generateToken(any(), any(),any());
     }
 
 }
