@@ -1,4 +1,4 @@
-package com.example.inventory_service.kafka;
+package com.example.admin_service.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

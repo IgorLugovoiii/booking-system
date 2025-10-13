@@ -1,4 +1,4 @@
-package com.example.inventory_service.kafka;
+package com.example.payment_service.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +11,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class LogProducer {
-    private static final String LOG_TOPIC = "logs-topic";
+    private final static String LOG_TOPIC = "logs-topic";
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 

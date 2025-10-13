@@ -1,4 +1,4 @@
-package com.example.inventory_service.kafka;
+package com.example.booking_service.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,8 +15,8 @@ public class LogProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    public void sendLogEvent(Map<String, Object> logMap) throws JsonProcessingException {
-        String json = objectMapper.writeValueAsString(logMap);
+    public void sendLogEvent(Map<String, Object> log) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(log);
         kafkaTemplate.send(LOG_TOPIC, "log", json);
     }
 }

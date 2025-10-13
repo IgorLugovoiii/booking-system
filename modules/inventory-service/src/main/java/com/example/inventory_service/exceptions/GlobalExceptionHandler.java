@@ -1,10 +1,8 @@
-package com.example.inventory_service.exception;
+package com.example.inventory_service.exceptions;
 
 import com.example.inventory_service.kafka.LogProducer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +16,12 @@ import java.util.Map;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-
     private final LogProducer logProducer;
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAll(Exception ex) throws JsonProcessingException {
         String traceId = MDC.get("traceId");
+        traceId = (traceId != null) ? traceId : "N/A";
 
         Map<String, Object> body = Map.of(
                 "timestamp", Instant.now(),
@@ -33,7 +32,7 @@ public class GlobalExceptionHandler {
                 "status", 500
         );
 
-        logProducer.sentLogEvent(body);
+        logProducer.sendLogEvent(body);
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }

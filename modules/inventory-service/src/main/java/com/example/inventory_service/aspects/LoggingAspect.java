@@ -30,6 +30,7 @@ public class LoggingAspect {
         userId = userId != null ? userId : "anonymous";
 
         Object result;
+
         Map<String, Object> logMap = new HashMap<>();
         logMap.put("timestamp", Instant.now());
         logMap.put("service", "inventory-service");
@@ -48,7 +49,7 @@ public class LoggingAspect {
             logMap.put("exception", ex.toString());
             throw ex;
         }
-        logProducer.sentLogEvent(logMap);
+        logProducer.sendLogEvent(logMap);
         return result;
     }
 }
