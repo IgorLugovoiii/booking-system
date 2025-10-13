@@ -19,7 +19,7 @@ public class SpecificationUtils {
         if (from != null && to != null)
             return (root, query, criteriaBuilder) -> (criteriaBuilder.between(root.get(field), from, to));
         if (from != null)
-            return (root, query, criteriaBuilder) -> (criteriaBuilder.greaterThanOrEqualTo(root.get(field), to));
+            return (root, query, criteriaBuilder) -> (criteriaBuilder.greaterThanOrEqualTo(root.get(field), from));
         return (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get(field), to);
     }
 

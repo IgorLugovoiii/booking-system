@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 @Slf4j
 public class LoggingAspect {
-    @Around("execution(* com.example.admin_service..*(..))")
+    @Around("execution(* com.example.admin_service..*(..)) && !within(com.example.admin_service.aspects.LoggingFilter)")
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
         String method = joinPoint.getSignature().toShortString();
         String traceId = MDC.get("traceId");

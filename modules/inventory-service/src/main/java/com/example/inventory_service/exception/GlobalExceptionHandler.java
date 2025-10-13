@@ -1,5 +1,8 @@
 package com.example.inventory_service.exception;
 
+import com.example.inventory_service.kafka.LogProducer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -13,14 +16,14 @@ import java.util.Arrays;
 import java.util.Map;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
+    private final LogProducer logProducer;
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleAll(Exception ex) {
+    public ResponseEntity<Map<String, Object>> handleAll(Exception ex) throws JsonProcessingException {
         String traceId = MDC.get("traceId");
-        log.error("Unhandled exception, traceId={}", traceId, ex);
+
         Map<String, Object> body = Map.of(
                 "timestamp", Instant.now(),
                 "traceId", traceId,
@@ -29,6 +32,8 @@ public class GlobalExceptionHandler {
                 "stackTrace", Arrays.toString(ex.getStackTrace()),
                 "status", 500
         );
+
+        logProducer.sentLogEvent(body);
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }

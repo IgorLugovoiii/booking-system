@@ -139,6 +139,56 @@ services:
       - microservices-net
     restart: always
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.1.5
+    container_name: elasticsearch
+    environment:
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -E '\"status\":\"(green|yellow)\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.1.5
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - microservices-net
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.1.5
+    container_name: logstash
+    ports:
+      - "5044:5044"   # для filebeat / beats input
+    volumes:
+      - ./modules/log-service/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    networks:
+      - microservices-net
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s http://elasticsearch:9200 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
   config-server:
     build: ./modules/config-server
     ports:
@@ -271,6 +321,23 @@ services:
       config-server:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  log-service:
+    build: ./modules/log-service
+    container_name: log-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      kafka:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      logstash:
         condition: service_healthy
     networks:
       - microservices-net

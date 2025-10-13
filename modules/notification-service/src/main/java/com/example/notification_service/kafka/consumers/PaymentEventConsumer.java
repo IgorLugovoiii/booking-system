@@ -26,22 +26,18 @@ public class PaymentEventConsumer extends BaseEventConsumer<PaymentEvent> {
 
     @Override
     protected NotificationRequest buildNotification(PaymentEvent event) {
-        try {
-            String subject = switch (event.getEventType()) {
-                case "payment.successful" -> String.format(
-                        "Payment successful! Price: %.2f hrn. Date: %s",
-                        event.getAmount(),
-                        event.getPaymentDate()
-                );
-                default -> "Payment failed. Something is wrong";
-            };
+        String subject = switch (event.getEventType()) {
+            case "payment.successful" -> String.format(
+                    "Payment successful! Price: %.2f hrn. Date: %s",
+                    event.getAmount(),
+                    event.getPaymentDate()
+            );
+            default -> "Payment failed. Something is wrong";
+        };
 
-            String msg = "Event: " + event.getEventType() + " for payment with id: "
-                    + event.getPaymentId() + ", user id: " + event.getUserId() + " and price: " + event.getAmount();
+        String msg = "Event: " + event.getEventType() + " for payment with id: "
+                + event.getPaymentId() + ", user id: " + event.getUserId() + " and price: " + event.getAmount();
 
-            return new NotificationRequest("qeadzc4065@gmail.com", "payment.success", msg);
-        } catch (Exception e) {
-            throw new KafkaMessageReceiveException("Failed to receive payment event", e);
-        }
+        return new NotificationRequest("qeadzc4065@gmail.com", "payment.success", msg);
     }
 }
