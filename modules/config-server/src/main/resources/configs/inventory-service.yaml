@@ -34,6 +34,12 @@ management:
       prometheus:
         enabled: true
 
+service:
+  name: inventory-service
+logging:
+  kafka:
+    enabled: true
+
 resilience4j:
   circuitbreaker:
     instances:

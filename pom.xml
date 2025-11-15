@@ -1,7 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
@@ -19,6 +16,8 @@
         <module>modules/notification-service</module>
         <module>modules/payment-service</module>
         <module>modules/auth-service</module>
+
+        <module>modules/logging-starter</module>
     </modules>
 
 </project>

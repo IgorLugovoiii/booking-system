@@ -29,6 +29,11 @@ management:
       prometheus:
         enabled: true
 
+service:
+  name: admin-service
+logging:
+  kafka:
+    enabled: true
 
 resilience4j:
   circuitbreaker:

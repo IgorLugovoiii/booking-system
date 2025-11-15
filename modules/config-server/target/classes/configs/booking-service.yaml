@@ -30,6 +30,12 @@ management:
       prometheus:
         enabled: true
 
+service:
+  name: booking-service
+logging:
+  kafka:
+    enabled: true
+
 resilience4j:
   circuitbreaker:
     instances:

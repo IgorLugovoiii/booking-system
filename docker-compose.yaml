@@ -325,23 +325,6 @@ services:
     networks:
       - microservices-net
 
-  log-service:
-    build: ./modules/log-service
-    container_name: log-service
-    ports:
-      - "8087:8087"
-    depends_on:
-      kafka:
-        condition: service_started
-      elasticsearch:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      logstash:
-        condition: service_healthy
-    networks:
-      - microservices-net
-
 networks:
   microservices-net:
     name: microservices-net
