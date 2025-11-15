@@ -177,7 +177,7 @@ services:
     ports:
       - "5044:5044"   # для filebeat / beats input
     volumes:
-      - ./modules/log-service/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - .logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     networks:
       - microservices-net
     depends_on:

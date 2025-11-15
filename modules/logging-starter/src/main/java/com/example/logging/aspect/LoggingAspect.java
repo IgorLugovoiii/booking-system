@@ -46,7 +46,7 @@ public class LoggingAspect {
             result = joinPoint.proceed();
             logMap.put("level", "INFO");
             logMap.put("message", "Method executed successfully");
-            logMap.put("result", result != null ? result.toString() : null);
+            logMap.put("resultType", result != null ? result.getClass().getSimpleName() : "null");
         } catch (Throwable ex) {
             logMap.put("level", "ERROR");
             logMap.put("message", ex.getMessage());
