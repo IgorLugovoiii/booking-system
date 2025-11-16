@@ -2,6 +2,7 @@ package com.example.auth_service.utils;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -11,7 +12,11 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final String jwtSecret = "bXkgcGVyZmVjdCBzZWNyZXQga2V5IHdpdGggYWRkaXRpb25hbCBzZWNyZXQ=";
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
 
     private Key getSigningKey() {
         byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
@@ -19,13 +24,12 @@ public class JwtUtil {
     }
 
     public String generateToken(String username, String role, Long userId) {
-        long jwtExpirations = 86400000;
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role)
                 .claim("userId", userId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + jwtExpirations))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

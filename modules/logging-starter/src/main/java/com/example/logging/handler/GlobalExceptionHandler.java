@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.naming.AuthenticationException;
+import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.Map;
 
@@ -21,9 +23,7 @@ public class GlobalExceptionHandler {
     @Value("${service.name:unknown-service}")
     private String serviceName;
 
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleAll(Exception ex) throws JsonProcessingException {
+    public ResponseEntity<Map<String, Object>> buildResponse(Exception ex, HttpStatus status) throws JsonProcessingException {
         String traceId = MDC.get("traceId");
         traceId = (traceId != null) ? traceId : "N/A";
 
@@ -33,11 +33,31 @@ public class GlobalExceptionHandler {
                 "service", serviceName,
                 "message", ex.getMessage(),
                 "exception", ex.getClass().getSimpleName(),
-                "status", 500
+                "status", status.value()
         );
 
         logProducer.sendLogEvent(body);
 
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(body, status);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(Exception ex) throws JsonProcessingException {
+        return buildResponse(ex, HttpStatus.BAD_REQUEST); // 400
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleForbidden(Exception ex) throws JsonProcessingException {
+        return buildResponse(ex, HttpStatus.FORBIDDEN); // 403
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorized(Exception ex) throws JsonProcessingException {
+        return buildResponse(ex, HttpStatus.UNAUTHORIZED); // 401
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleAll(Exception ex) throws JsonProcessingException {
+        return buildResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR); // 500
     }
 }

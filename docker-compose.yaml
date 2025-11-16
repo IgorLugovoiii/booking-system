@@ -139,6 +139,17 @@ services:
       - microservices-net
     restart: always
 
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: ms_redis_insight
+    ports:
+      - "5540:5540" # ms_redis:6379
+    depends_on:
+      - redis
+    networks:
+      - microservices-net
+    restart: always
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.1.5
     container_name: elasticsearch
@@ -175,9 +186,9 @@ services:
     image: docker.elastic.co/logstash/logstash:9.1.5
     container_name: logstash
     ports:
-      - "5044:5044"   # для filebeat / beats input
+      - "5044:5044"
     volumes:
-      - .logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     networks:
       - microservices-net
     depends_on:
@@ -223,6 +234,8 @@ services:
     build: ./modules/api-gateway
     ports:
       - "8080:8080"
+    environment:
+      JWT_SECRET: "bXkgcGVyZmVjdCBzZWNyZXQga2V5IHdpdGggYWRkaXRpb25hbCBzZWNyZXQ="
     depends_on:
       config-server:
         condition: service_healthy
@@ -235,6 +248,8 @@ services:
     build: ./modules/auth-service
     ports:
       - "8081:8081"
+    environment:
+      JWT_SECRET: "bXkgcGVyZmVjdCBzZWNyZXQga2V5IHdpdGggYWRkaXRpb25hbCBzZWNyZXQ="
     depends_on:
       kafka:
         condition: service_started

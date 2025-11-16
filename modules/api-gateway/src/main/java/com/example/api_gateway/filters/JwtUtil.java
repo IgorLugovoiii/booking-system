@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -12,7 +13,8 @@ import java.util.Base64;
 
 @Component
 public class JwtUtil {
-    private final String jwtSecret = "bXkgcGVyZmVjdCBzZWNyZXQga2V5IHdpdGggYWRkaXRpb25hbCBzZWNyZXQ=";
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     private Key getSigningKey() {
         byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);

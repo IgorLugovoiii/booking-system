@@ -61,6 +61,10 @@ resilience4j:
         limitRefreshPeriod: 10s
         timeoutDuration: 1s
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
 eureka:
   client:
     service-url:
