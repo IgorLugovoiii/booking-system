@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -129,6 +130,6 @@ public class ItemServiceImpl implements ItemService {
     @Retry(name = "kafkaProducer")
     @RateLimiter(name = "itemService")
     private void sendKafkaEventSafely(Runnable runnable) {
-        runnable.run();
+        CompletableFuture.runAsync(runnable);
     }
 }

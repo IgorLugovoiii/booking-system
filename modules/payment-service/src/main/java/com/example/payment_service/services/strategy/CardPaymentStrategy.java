@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
 
 @Service("creditCardPayment")
 @RequiredArgsConstructor
@@ -58,6 +59,6 @@ public class CardPaymentStrategy implements PaymentStrategy {
     @Retry(name = "paymentService")
     @RateLimiter(name = "paymentService")
     private void sendKafkaEventSafely(Runnable runnable) {
-        runnable.run();
+        CompletableFuture.runAsync(runnable);
     }
 }

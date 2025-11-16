@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -145,6 +146,6 @@ public class BookingServiceImpl implements BookingService {
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
     private void sendKafkaEventSafely(Runnable runnable){
-        runnable.run();
+        CompletableFuture.runAsync(runnable);
     }
 }

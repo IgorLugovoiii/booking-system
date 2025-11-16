@@ -2,7 +2,6 @@ package com.example.payment_service.services.impl;
 
 import com.example.payment_service.dtos.PaymentRequest;
 import com.example.payment_service.dtos.PaymentResponse;
-import com.example.payment_service.kafka.PaymentProducer;
 import com.example.payment_service.services.api.PaymentService;
 import com.example.payment_service.services.strategy.PaymentStrategy;
 import com.example.payment_service.services.strategy.PaymentStrategyFactory;
@@ -15,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentStrategyFactory strategyFactory;
-    private final PaymentProducer paymentProducer;
 
     @Transactional
     @Override

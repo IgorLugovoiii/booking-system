@@ -24,6 +24,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -103,6 +105,6 @@ public class AuthServiceImpl implements AuthService {
     @Retry(name = "authService")
     @RateLimiter(name = "authService")
     private void sendKafkaEventSafely(Runnable runnable) {
-        runnable.run();
+        CompletableFuture.runAsync(runnable);
     }
 }
