@@ -245,7 +245,9 @@ services:
       - microservices-net
 
   auth-service:
-    build: ./modules/auth-service
+    build:
+      context: . # вказує директорію, яку Docker буде використовувати як контекст для збірки. Тобто всі файли в цій папці (і підпапках) доступні для COPY у Dockerfile.
+      dockerfile: modules/auth-service/Dockerfile
     ports:
       - "8081:8081"
     environment:
@@ -263,7 +265,9 @@ services:
       - microservices-net
 
   admin-service:
-    build: ./modules/admin-service
+    build:
+      context: .
+      dockerfile: modules/admin-service/Dockerfile
     ports:
       - "8084:8084"
     depends_on:
@@ -277,7 +281,9 @@ services:
       - microservices-net
 
   booking-service:
-    build: ./modules/booking-service
+    build:
+      context: .
+      dockerfile: modules/booking-service/Dockerfile
     ports:
       - "8083:8083"
     depends_on:
@@ -293,7 +299,9 @@ services:
       - microservices-net
 
   inventory-service:
-    build: ./modules/inventory-service
+    build:
+      context: .
+      dockerfile: modules/inventory-service/Dockerfile
     ports:
       - "8082:8082"
     depends_on:
@@ -311,7 +319,9 @@ services:
       - microservices-net
 
   notification-service:
-    build: ./modules/notification-service
+    build:
+      context: .
+      dockerfile: modules/notification-service/Dockerfile
     ports:
       - "8085:8085"
     depends_on:
@@ -325,7 +335,9 @@ services:
       - microservices-net
 
   payment-service:
-    build: ./modules/payment-service
+    build:
+      context: .
+      dockerfile: modules/payment-service/Dockerfile
     ports:
       - "8086:8086"
     depends_on:
