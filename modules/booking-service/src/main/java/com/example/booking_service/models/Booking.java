@@ -28,6 +28,6 @@ public class Booking {
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)м
     private BookingStatus bookingStatus;
 }

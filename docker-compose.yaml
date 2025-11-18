@@ -201,7 +201,9 @@ services:
       retries: 20
 
   config-server:
-    build: ./modules/config-server
+    build:
+      context: .
+      dockerfile: modules/config-server/Dockerfile
     ports:
       - "8888:8888"
     depends_on:
@@ -217,7 +219,9 @@ services:
       retries: 10
 
   eureka-server:
-    build: ./modules/eureka-server
+    build:
+      context: .
+      dockerfile: modules/eureka-server/Dockerfile
     ports:
       - "8761:8761"
     networks:
@@ -231,7 +235,9 @@ services:
       start_period: 20s
 
   api-gateway:
-    build: ./modules/api-gateway
+    build:
+      context: .
+      dockerfile: modules/api-gateway/Dockerfile
     ports:
       - "8080:8080"
     environment:

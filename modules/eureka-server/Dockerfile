@@ -2,19 +2,16 @@ FROM maven:3.9.6-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-COPY pom.xml .
+COPY . .
 
-RUN mvn dependency:go-offline
-
-COPY src ./src
-
-RUN mvn clean package -DskipTests
+RUN mvn -pl modules/eureka-server -am dependency:go-offline
+RUN mvn -pl modules/eureka-server -am package -DskipTests
 
 FROM eclipse-temurin:21-jdk-alpine AS runtime
 
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/modules/eureka-server/target/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
 

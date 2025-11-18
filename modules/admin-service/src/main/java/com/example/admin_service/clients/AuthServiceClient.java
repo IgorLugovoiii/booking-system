@@ -13,7 +13,7 @@ public interface AuthServiceClient {
     @GetMapping("/api/users")
     List<UserDto> getAllUsers();
     @PutMapping("/api/users/{id}/role")
-    void updateUserRole(@PathVariable Long id, @RequestBody UpdateRoleRequest request);
+    void updateUserRole(@PathVariable("id") Long id, @RequestBody UpdateRoleRequest request);
     @DeleteMapping("/api/users/{id}")
-    void deleteUser(@PathVariable Long id);
+    void deleteUser(@PathVariable("id") Long id);
 }
