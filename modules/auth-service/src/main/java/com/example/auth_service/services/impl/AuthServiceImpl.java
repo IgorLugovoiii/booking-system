@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponse registration(RegisterRequest registerRequest) throws JsonProcessingException {
+    public AuthResponse registration(RegisterRequest registerRequest) {
         if (userRepository.findUserByUsername(registerRequest.getUsername()).isPresent()) {
             throw new IllegalStateException("User already exists");
         }

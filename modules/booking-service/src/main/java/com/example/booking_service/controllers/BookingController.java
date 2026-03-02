@@ -4,7 +4,6 @@ import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
 import com.example.booking_service.dtos.BookingSearchParams;
 import com.example.booking_service.services.api.BookingService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -33,7 +32,7 @@ public class BookingController {
             @ApiResponse(responseCode = "403", description = "Unauthorized"),
             @ApiResponse(responseCode = "400", description = "Invalid credentials")
     })
-    public ResponseEntity<BookingResponse> createBooking(@RequestBody BookingRequest bookingRequest) throws JsonProcessingException {
+    public ResponseEntity<BookingResponse> createBooking(@RequestBody BookingRequest bookingRequest) {
         return new ResponseEntity<>(bookingService.createBooking(bookingRequest), HttpStatus.CREATED);
     }
 
@@ -59,7 +58,7 @@ public class BookingController {
     @PutMapping("/{bookingId}/cancel")
     public ResponseEntity<Void> cancelBooking(
             @Parameter(description = "ID of the booking to find by id", example = "1")
-            @PathVariable Long bookingId) throws JsonProcessingException {
+            @PathVariable Long bookingId) {
         bookingService.cancelBooking(bookingId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -73,7 +72,7 @@ public class BookingController {
     @PutMapping("/{bookingId}/update")
     public ResponseEntity<BookingResponse> updateBooking(
             @Parameter(description = "ID of the booking to update", example = "1")
-            @PathVariable Long bookingId, @RequestBody BookingRequest bookingRequest) throws JsonProcessingException {
+            @PathVariable Long bookingId, @RequestBody BookingRequest bookingRequest) {
         return new ResponseEntity<>(bookingService.updateBooking(bookingId, bookingRequest), HttpStatus.OK);
     }
 
@@ -85,7 +84,7 @@ public class BookingController {
     @PutMapping("/{bookingId}/confirm")
     public ResponseEntity<BookingResponse> confirmBooking(
             @Parameter(description = "ID of the booking to delete", example = "1")
-            @PathVariable Long bookingId) throws JsonProcessingException {
+            @PathVariable Long bookingId) {
         return new ResponseEntity<>(bookingService.confirmBooking(bookingId), HttpStatus.OK);
     }
 

@@ -24,7 +24,7 @@ public class CardPaymentStrategy implements PaymentStrategy {
     private final PaymentProducer paymentProducer;
 
     @Override
-    public PaymentResponse pay(PaymentRequest paymentRequest) throws JsonProcessingException {
+    public PaymentResponse pay(PaymentRequest paymentRequest) {
         Payment payment = Payment.builder()
                 .bookingId(paymentRequest.getBookingId())
                 .userId(paymentRequest.getUserId())

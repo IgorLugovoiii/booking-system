@@ -2,16 +2,11 @@ package com.example.payment_service.services;
 
 import com.example.payment_service.dtos.PaymentRequest;
 import com.example.payment_service.dtos.PaymentResponse;
-import com.example.payment_service.kafka.PaymentEvent;
-import com.example.payment_service.kafka.PaymentProducer;
-import com.example.payment_service.models.Payment;
 import com.example.payment_service.models.enums.PaymentStatus;
 import com.example.payment_service.models.enums.PaymentType;
-import com.example.payment_service.repositories.PaymentRepository;
 import com.example.payment_service.services.impl.PaymentServiceImpl;
 import com.example.payment_service.services.strategy.PaymentStrategy;
 import com.example.payment_service.services.strategy.PaymentStrategyFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +51,7 @@ public class TestPaymentServiceImpl {
     }
 
     @Test
-    void givenValidPayment_whenProcessingPayment_thenUsesStrategy() throws JsonProcessingException {
+    void givenValidPayment_whenProcessingPayment_thenUsesStrategy() {
         // Мок фабрику, щоб вона повертала потрібну стратегію
         when(strategyFactory.getStrategy(paymentRequest.getPaymentType()))
                 .thenReturn(cardPaymentStrategy);
@@ -73,7 +68,7 @@ public class TestPaymentServiceImpl {
     }
 
     @Test
-    void givenStrategyThrowsException_thenPropagates() throws JsonProcessingException {
+    void givenStrategyThrowsException_thenPropagates() {
         when(strategyFactory.getStrategy(paymentRequest.getPaymentType()))
                 .thenReturn(cardPaymentStrategy);
         when(cardPaymentStrategy.pay(paymentRequest)).thenThrow(new RuntimeException("Kafka failed"));

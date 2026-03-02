@@ -26,18 +26,17 @@ public class PaymentEventConsumer extends BaseEventConsumer<PaymentEvent> {
 
     @Override
     protected NotificationRequest buildNotification(PaymentEvent event) {
-        String subject = switch (event.getEventType()) {
-            case "payment.successful" -> String.format(
+        String subject = "Payment failed. Something is wrong";
+        if ("payment.successful".equals(event.getEventType())) {
+            subject = String.format(
                     "Payment successful! Price: %.2f hrn. Date: %s",
                     event.getAmount(),
                     event.getPaymentDate()
             );
-            default -> "Payment failed. Something is wrong";
-        };
-
+        }
         String msg = "Event: " + event.getEventType() + " for payment with id: "
                 + event.getPaymentId() + ", user id: " + event.getUserId() + " and price: " + event.getAmount();
 
-        return new NotificationRequest("qeadzc4065@gmail.com", "payment.success", msg);
+        return new NotificationRequest("qeadzc4065@gmail.com", subject, msg);
     }
 }

@@ -37,7 +37,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemResponse findById(Long itemId) throws JsonProcessingException {
+    public ItemResponse findById(Long itemId){
         Item cachedItem = itemCacheService.getItem(itemId);
         if (cachedItem != null) {
             return itemMapper.toItemResponse(cachedItem);
@@ -57,14 +57,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemResponse createItem(ItemRequest itemRequest) throws JsonProcessingException {
+    public ItemResponse createItem(ItemRequest itemRequest) {
         Item item = itemMapper.toItem(itemRequest);
         item.setCreatedAt(LocalDateTime.now());
         item.setUpdatedAt(LocalDateTime.now());
 
         itemRepository.save(item);
         itemCacheService.cacheItem(item);
-        sendKafkaEventSafely(()-> {
+        sendKafkaEventSafely(() -> {
             try {
                 itemProducer.sendEvent(itemEventMapper.toCreatedEvent(item));
             } catch (JsonProcessingException e) {
@@ -76,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemResponse updateItem(Long id, ItemRequest itemRequest) throws JsonProcessingException {
+    public ItemResponse updateItem(Long id, ItemRequest itemRequest) {
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         item.setName(itemRequest.getName());
         item.setDescription(itemRequest.getDescription());
@@ -87,7 +87,7 @@ public class ItemServiceImpl implements ItemService {
 
         itemRepository.save(item);
         itemCacheService.cacheItem(item);
-        sendKafkaEventSafely(()-> {
+        sendKafkaEventSafely(() -> {
             try {
                 itemProducer.sendEvent(itemEventMapper.toUpdatedEvent(item));
             } catch (JsonProcessingException e) {
@@ -99,10 +99,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public void deleteById(Long id)  {
+    public void deleteById(Long id) {
         Item item = itemRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
-        sendKafkaEventSafely(()-> {
+        sendKafkaEventSafely(() -> {
             try {
                 itemProducer.sendEvent(itemEventMapper.toDeletedEvent(item));
             } catch (JsonProcessingException e) {

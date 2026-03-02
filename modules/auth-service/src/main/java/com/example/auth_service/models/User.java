@@ -20,7 +20,7 @@ public class User {
     @Column(name = "id")
     @Schema(description = "User id", example = "1")
     private Long id;
-    @Size(min = 0, max = 30, message = "Incorrect username, length must be from 0 to 30")
+    @Size(max = 30, message = "Incorrect username, length must be from 0 to 30")
     @Column(name = "username", nullable = false)
     @Schema(description = "Username", example = "username")
     private String username;

@@ -4,7 +4,6 @@ import com.example.auth_service.dtos.AuthRequest;
 import com.example.auth_service.dtos.AuthResponse;
 import com.example.auth_service.dtos.RegisterRequest;
 import com.example.auth_service.services.api.AuthService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -31,7 +30,7 @@ public class AuthController {
             @ApiResponse(responseCode = "201", description = "User created successfully"),
             @ApiResponse(responseCode = "404", description = "Wrong input data")
     })
-    public ResponseEntity<AuthResponse> registration(@RequestBody @Valid RegisterRequest registerRequest) throws JsonProcessingException {
+    public ResponseEntity<AuthResponse> registration(@RequestBody @Valid RegisterRequest registerRequest) {
         return new ResponseEntity<>(authService.registration(registerRequest), HttpStatus.CREATED);
     }
 

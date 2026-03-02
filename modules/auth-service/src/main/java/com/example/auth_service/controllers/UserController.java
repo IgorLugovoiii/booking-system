@@ -3,8 +3,6 @@ package com.example.auth_service.controllers;
 import com.example.auth_service.dtos.UpdateRoleRequest;
 import com.example.auth_service.models.User;
 import com.example.auth_service.services.api.UserService;
-import com.example.auth_service.services.impl.UserServiceImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -64,7 +62,7 @@ public class UserController {
     })
     public ResponseEntity<User> updateUserRole(
             @Parameter(description = "ID of the user to update", example = "1")
-            @PathVariable Long id, @RequestBody UpdateRoleRequest newRole) throws JsonProcessingException {
+            @PathVariable Long id, @RequestBody UpdateRoleRequest newRole) {
         return new ResponseEntity<>(userService.updateUserRole(id, newRole.getNewRole()), HttpStatus.CREATED);
     }
 
@@ -76,7 +74,7 @@ public class UserController {
     })
     public ResponseEntity<Void> deleteUserById(
             @Parameter(description = "ID of the user to delete", example = "1")
-            @PathVariable Long id) throws JsonProcessingException {
+            @PathVariable Long id) {
         userService.deleteUserById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

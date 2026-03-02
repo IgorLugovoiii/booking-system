@@ -3,7 +3,6 @@ package com.example.payment_service.controllers;
 import com.example.payment_service.dtos.PaymentRequest;
 import com.example.payment_service.dtos.PaymentResponse;
 import com.example.payment_service.services.api.PaymentService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -30,7 +29,7 @@ public class PaymentController {
             @ApiResponse(responseCode = "404", description = "Something happened, while making payment")
     })
     @PostMapping
-    public ResponseEntity<PaymentResponse> makePayment(@RequestBody PaymentRequest paymentRequest) throws JsonProcessingException {
+    public ResponseEntity<PaymentResponse> makePayment(@RequestBody PaymentRequest paymentRequest){
         return new ResponseEntity<>(paymentService.processPayment(paymentRequest), HttpStatus.CREATED);
     }
 }

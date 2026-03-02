@@ -36,7 +36,7 @@ public class AuthControllerIT {
     private AuthRequest authRequest;
 
     @Container
-    public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
+    public static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
             .withDatabaseName("test")
             .withUsername("test")
             .withPassword("test");

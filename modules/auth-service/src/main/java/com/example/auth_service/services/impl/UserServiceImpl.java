@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateUserRole(Long id, String newRole) throws JsonProcessingException {
+    public User updateUserRole(Long id, String newRole) {
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         user.setRole(Role.valueOf(newRole));
         sendKafkaEventSafely(() -> {
@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteUserById(Long id) throws JsonProcessingException {
+    public void deleteUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         userRepository.deleteById(id);
         sendKafkaEventSafely(() ->

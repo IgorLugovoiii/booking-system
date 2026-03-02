@@ -37,7 +37,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingResponse createBooking(BookingRequest bookingRequest) throws JsonProcessingException {
+    public BookingResponse createBooking(BookingRequest bookingRequest) {
         Booking booking = bookingMapper.toBooking(bookingRequest);
         booking.setBookingStatus(BookingStatus.PENDING);
         booking.setCreatedAt(LocalDateTime.now());
@@ -56,7 +56,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void cancelBooking(Long bookingId) throws JsonProcessingException {
+    public void cancelBooking(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
@@ -85,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingResponse updateBooking(Long bookingId, BookingRequest bookingRequest) throws JsonProcessingException {
+    public BookingResponse updateBooking(Long bookingId, BookingRequest bookingRequest) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
@@ -110,7 +110,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingResponse confirmBooking(Long bookingId) throws JsonProcessingException {
+    public BookingResponse confirmBooking(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() != BookingStatus.PENDING) {

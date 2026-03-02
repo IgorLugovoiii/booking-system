@@ -4,8 +4,6 @@ import com.example.inventory_service.dtos.ItemRequest;
 import com.example.inventory_service.dtos.ItemResponse;
 import com.example.inventory_service.dtos.ItemSearchParams;
 import com.example.inventory_service.services.api.ItemService;
-import com.example.inventory_service.services.impl.ItemServiceImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -56,7 +54,7 @@ public class ItemController {
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemResponse> findItemById(
             @Parameter(description = "ID of the item to find", example = "1")
-            @PathVariable Long itemId) throws JsonProcessingException {
+            @PathVariable Long itemId) {
         return new ResponseEntity<>(itemService.findById(itemId),HttpStatus.OK);
     }
 
@@ -66,7 +64,7 @@ public class ItemController {
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping
-    public ResponseEntity<ItemResponse> createItem(@RequestBody @Valid ItemRequest itemRequest) throws JsonProcessingException {
+    public ResponseEntity<ItemResponse> createItem(@RequestBody @Valid ItemRequest itemRequest) {
         return new ResponseEntity<>(itemService.createItem(itemRequest),HttpStatus.CREATED);
     }
 
@@ -79,7 +77,7 @@ public class ItemController {
     @PutMapping("/{itemId}")
     public ResponseEntity<ItemResponse> updateItem(
             @Parameter(description = "ID of the item to update", example = "1")
-            @PathVariable @Valid Long itemId, @RequestBody ItemRequest itemRequest) throws JsonProcessingException {
+            @PathVariable @Valid Long itemId, @RequestBody ItemRequest itemRequest) {
         return new ResponseEntity<>(itemService.updateItem(itemId,itemRequest),HttpStatus.OK);
     }
 
@@ -92,7 +90,7 @@ public class ItemController {
     @DeleteMapping("/{itemId}")
     public ResponseEntity<Void> deleteItemById(
             @Parameter(description = "ID of the item to delete", example = "1")
-            @PathVariable Long itemId) throws JsonProcessingException {
+            @PathVariable Long itemId) {
         itemService.deleteById(itemId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

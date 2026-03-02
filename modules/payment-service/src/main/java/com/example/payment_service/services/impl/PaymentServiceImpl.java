@@ -5,7 +5,6 @@ import com.example.payment_service.dtos.PaymentResponse;
 import com.example.payment_service.services.api.PaymentService;
 import com.example.payment_service.services.strategy.PaymentStrategy;
 import com.example.payment_service.services.strategy.PaymentStrategyFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +16,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Transactional
     @Override
-    public PaymentResponse processPayment(PaymentRequest paymentRequest) throws JsonProcessingException {
+    public PaymentResponse processPayment(PaymentRequest paymentRequest){
         PaymentStrategy strategy = strategyFactory.getStrategy(paymentRequest.getPaymentType());
         return strategy.pay(paymentRequest);
     }

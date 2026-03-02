@@ -187,7 +187,7 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    void givenItemNotFound_whenDeleteById_thenThrowEntityNotFoundException() throws JsonProcessingException {
+    void givenItemNotFound_whenDeleteById_thenThrowEntityNotFoundException() {
         when(itemRepository.findById(item.getId())).thenReturn(Optional.empty());
 
         assertThatThrownBy(()-> itemServiceImpl.deleteById(item.getId()))
@@ -198,7 +198,7 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    void givenItemNotInCache_whenFindById_thenFetchFromRepositoryAndCacheIt() throws JsonProcessingException {
+    void givenItemNotInCache_whenFindById_thenFetchFromRepositoryAndCacheIt() {
         when(itemCacheService.getItem(item.getId())).thenReturn(null);
         when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
         doNothing().when(itemCacheService).cacheItem(item);
@@ -213,7 +213,7 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    void givenItemInCache_whenFindById_thenReturnFromCache() throws JsonProcessingException {
+    void givenItemInCache_whenFindById_thenReturnFromCache() {
         when(itemCacheService.getItem(item.getId())).thenReturn(item);
         when(itemMapper.toItemResponse(item)).thenReturn(itemResponse);
 
@@ -225,7 +225,7 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    void givenItemNotFound_whenFindById_thenThrowEntityNotFoundException() throws JsonProcessingException {
+    void givenItemNotFound_whenFindById_thenThrowEntityNotFoundException() {
         when(itemCacheService.getItem(item.getId())).thenReturn(null);
         when(itemRepository.findById(item.getId())).thenReturn(Optional.empty());
 
