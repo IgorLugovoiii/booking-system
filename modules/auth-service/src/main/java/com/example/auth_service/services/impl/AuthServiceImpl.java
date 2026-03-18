@@ -36,10 +36,9 @@ public class AuthServiceImpl implements AuthService {
     private final AuthProducer authProducer;
 
     private AuthResponse authResponse(User user) {
-        AuthResponse authResponse = new AuthResponse();
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name(), user.getId());
-        authResponse.setToken(token);
-        return authResponse;
+        return AuthResponse.builder()
+                .token(jwtUtil.generateToken(user.getUsername(), user.getRole().name(), user.getId()))
+                .build();
     }
 
     @Override
@@ -53,12 +52,14 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalStateException("Email already registered");
         }
 
-        User user = new User();
-        user.setUsername(registerRequest.getUsername());
-        user.setEmail(registerRequest.getEmail());
-        user.setRole(Role.USER);
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        User user = User.builder()
+                .username(registerRequest.getUsername())
+                .email(registerRequest.getEmail())
+                .role(Role.USER)
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .build();
         userRepository.save(user);
+
         sendKafkaEventSafely(() -> {
             try {
                 authProducer.sendEvent(new UserEvent(
