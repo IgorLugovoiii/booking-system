@@ -22,7 +22,6 @@
         </processorPath>
         <module name="logging-starter" />
         <module name="config-server" />
-        <module name="auth-service" />
         <module name="inventory-service" />
         <module name="payment-service" />
         <module name="booking-service" />
@@ -33,6 +32,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="auth-service" target="21" />
       <module name="log-service" target="21" />
     </bytecodeTargetLevel>
   </component>

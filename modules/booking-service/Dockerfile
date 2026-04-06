@@ -15,4 +15,4 @@ COPY --from=build /app/modules/booking-service/target/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
-EXPOSE 8081
+EXPOSE 8083

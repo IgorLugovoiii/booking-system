@@ -78,19 +78,6 @@ services:
       - microservices-net
     restart: always
 
-  postgres-auth:
-    image: postgres:18-alpine
-    container_name: postgres_auth
-    environment:
-      POSTGRES_DB: auth_service_db
-      POSTGRES_USER: igor
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5434:5432"
-    networks:
-      - microservices-net
-    restart: always
-
   postgres-admin:
     image: postgres:18-alpine
     container_name: postgres_admin
@@ -163,7 +150,7 @@ services:
     networks:
       - microservices-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -E '\"status\":\"(green|yellow)\"'"]
+      test: [ "CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -E '\"status\":\"(green|yellow)\"'" ]
       interval: 10s
       timeout: 5s
       retries: 20
@@ -200,6 +187,37 @@ services:
       timeout: 5s
       retries: 20
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+    ports:
+      - "8081:8080"
+    depends_on:
+      keycloak-db:
+        condition: service_started
+    networks:
+      - microservices-net
+    restart: always
+
+  keycloak-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    volumes:
+      - keycloak_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
   config-server:
     build:
       context: .
@@ -228,7 +246,7 @@ services:
       - microservices-net
     restart: always
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://eureka-server:8761/actuator/health"]
+      test: [ "CMD", "wget", "--spider", "-q", "http://eureka-server:8761/actuator/health" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -247,26 +265,8 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
-    networks:
-      - microservices-net
-
-  auth-service:
-    build:
-      context: . # вказує директорію, яку Docker буде використовувати як контекст для збірки. Тобто всі файли в цій папці (і підпапках) доступні для COPY у Dockerfile.
-      dockerfile: modules/auth-service/Dockerfile
-    ports:
-      - "8081:8081"
-    environment:
-      JWT_SECRET: "bXkgcGVyZmVjdCBzZWNyZXQga2V5IHdpdGggYWRkaXRpb25hbCBzZWNyZXQ="
-    depends_on:
-      kafka:
+      keycloak:
         condition: service_started
-      postgres-auth:
-        condition: service_started
-      config-server:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
     networks:
       - microservices-net
 
@@ -362,3 +362,6 @@ networks:
   microservices-net:
     name: microservices-net
     driver: bridge
+
+volumes:
+  keycloak_data:

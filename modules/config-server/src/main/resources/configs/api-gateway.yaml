@@ -10,16 +10,6 @@ spring:
           lower-case-service-id: true
 
       routes:
-        - id: auth-service-auth
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/auth/**
-
-        - id: auth-service-users
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/users/**
-
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
@@ -44,10 +34,6 @@ spring:
           uri: lb://payment-service
           predicates:
             - Path=/api/payments/**
-
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: 86400000
 
 eureka:
   client:

@@ -8,12 +8,6 @@ scrape_configs:
       - targets:
           - 'api-gateway:8080'
 
-  - job_name: 'auth-service'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets:
-          - 'auth-service:8081'
-
   - job_name: 'item-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
