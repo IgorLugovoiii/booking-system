@@ -116,7 +116,7 @@ public class ItemControllerIT {
         item.setName("Updated item");
         item.setPrice(20.00);
 
-        mockMvc.perform(put("/api/items/" + item.getId())
+        mockMvc.perform(patch("/api/items/" + item.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(item)))
                 .andExpect(status().isOk())
@@ -130,7 +130,7 @@ public class ItemControllerIT {
         item.setName("Updated item");
         item.setPrice(20.00);
 
-        mockMvc.perform(put("/api/items/" + 999L)
+        mockMvc.perform(patch("/api/items/" + 999L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(item)))
                 .andExpect(status().isNotFound());

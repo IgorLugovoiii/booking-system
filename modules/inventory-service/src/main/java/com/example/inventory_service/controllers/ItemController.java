@@ -39,7 +39,6 @@ public class ItemController {
                             array = @ArraySchema(schema = @Schema(implementation = ItemResponse.class))
                     )),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "Items not found")
     })
     public ResponseEntity<List<ItemResponse>> findAllItems(){
         return new ResponseEntity<>(itemService.findAll(), HttpStatus.OK);
@@ -74,10 +73,10 @@ public class ItemController {
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "404", description = "Item not found")
     })
-    @PutMapping("/{itemId}")
+    @PatchMapping("/{itemId}")
     public ResponseEntity<ItemResponse> updateItem(
             @Parameter(description = "ID of the item to update", example = "1")
-            @PathVariable Long itemId, @RequestBody ItemRequest itemRequest) {
+            @PathVariable Long itemId, @RequestBody @Valid ItemRequest itemRequest) {
         return new ResponseEntity<>(itemService.updateItem(itemId,itemRequest),HttpStatus.OK);
     }
 
