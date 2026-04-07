@@ -1,6 +1,7 @@
 package com.example.booking_service.integration;
 
 import com.example.booking_service.dtos.BookingRequest;
+import com.example.booking_service.dtos.BookingUpdateRequest;
 import com.example.booking_service.models.Booking;
 import com.example.booking_service.models.enums.BookingStatus;
 import com.example.booking_service.repositories.BookingRepository;
@@ -98,20 +99,20 @@ public class BookingControllerIT {
 
     @Test
     public void shouldUpdateBooking() throws Exception {
-        Booking existing = bookingRepository.findAll().getFirst();
+        Booking booking = bookingRepository.findAll().getFirst();
 
-        BookingRequest updateRequest = new BookingRequest();
-        updateRequest.setUserId(existing.getUserId());
-        updateRequest.setItemId(existing.getItemId());
-        updateRequest.setBookingDate(LocalDateTime.now().plusDays(5));
+        BookingUpdateRequest request = BookingUpdateRequest.builder()
+                .userId(booking.getUserId())
+                .itemId(booking.getItemId())
+                .bookingDate(LocalDateTime.now().plusDays(5))
+                .build();
 
-
-        mockMvc.perform(put("/api/bookings/" + existing.getId() + "/update")
+        mockMvc.perform(patch("/api/bookings/" + booking.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(existing.getUserId()))
-                .andExpect(jsonPath("$.itemId").value(existing.getItemId()))
+                .andExpect(jsonPath("$.userId").value(booking.getUserId()))
+                .andExpect(jsonPath("$.itemId").value(booking.getItemId()))
                 .andExpect(jsonPath("$.status").value("PENDING"));
     }
 
@@ -119,8 +120,14 @@ public class BookingControllerIT {
     public void shouldCancelBooking() throws Exception {
         Booking booking = bookingRepository.findAll().getFirst();
 
-        mockMvc.perform(put("/api/bookings/" + booking.getId() + "/cancel"))
-                .andExpect(status().isNoContent());
+        BookingUpdateRequest request = BookingUpdateRequest.builder()
+                .bookingStatus(BookingStatus.CANCELLED)
+                .build();
+
+        mockMvc.perform(patch("/api/bookings/" + booking.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/bookings/" + booking.getUserId()))
                 .andExpect(status().isOk())
@@ -131,14 +138,26 @@ public class BookingControllerIT {
     public void shouldConfirmBooking() throws Exception {
         Booking booking = bookingRepository.findAll().getFirst();
 
-        mockMvc.perform(put("/api/bookings/" + booking.getId() + "/confirm"))
+        BookingUpdateRequest request = BookingUpdateRequest.builder()
+                .bookingStatus(BookingStatus.CONFIRMED)
+                .build();
+
+        mockMvc.perform(patch("/api/bookings/" + booking.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
     }
 
     @Test
     public void shouldReturn404WhenConfirmingNonexistentBooking() throws Exception {
-        mockMvc.perform(put("/api/bookings/99999/confirm"))
+        BookingUpdateRequest request = BookingUpdateRequest.builder()
+                .bookingStatus(BookingStatus.CONFIRMED)
+                .build();
+
+        mockMvc.perform(patch("/api/bookings/99999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
     }
 }

@@ -2,6 +2,7 @@ package com.example.booking_service.services;
 
 import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
+import com.example.booking_service.dtos.BookingUpdateRequest;
 import com.example.booking_service.kafka.BookingEvent;
 import com.example.booking_service.kafka.BookingProducer;
 import com.example.booking_service.mapper.BookingEventMapper;
@@ -101,52 +102,39 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    void givenExistingBooking_whenUpdateBooking_thenFieldsAreUpdatedAndEventSent() throws JsonProcessingException {
-        BookingRequest updatedRequest = BookingRequest.builder()
+    void givenPendingBooking_whenUpdateBooking_thenFieldsAreUpdatedAndEventSent() throws JsonProcessingException {
+        BookingUpdateRequest request = BookingUpdateRequest.builder()
                 .userId(2L)
                 .itemId(3L)
                 .bookingDate(LocalDateTime.now().plusDays(1))
-                .build();
-
-        Booking updatedBooking = Booking.builder()
-                .id(booking.getId())
-                .userId(updatedRequest.getUserId())
-                .itemId(updatedRequest.getItemId())
-                .bookingDate(updatedRequest.getBookingDate())
                 .bookingStatus(BookingStatus.PENDING)
-                .createdAt(booking.getCreatedAt())
-                .updatedAt(LocalDateTime.now().plusDays(1))
-                .build();
-
-        BookingResponse updatedResponse = BookingResponse.builder()
-                .userId(updatedBooking.getUserId())
-                .itemId(updatedBooking.getItemId())
-                .bookingDate(updatedBooking.getBookingDate())
                 .build();
 
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(any())).thenReturn(updatedBooking);
-        when(bookingMapper.toBookingResponse(any())).thenReturn(updatedResponse);
+        when(bookingRepository.save(any())).thenReturn(booking);
+        when(bookingMapper.toBookingResponse(any())).thenReturn(bookingResponse);
         when(bookingEventMapper.toUpdatedEvent(any())).thenReturn(bookingEvent);
 
-        BookingResponse response = bookingServiceImpl.updateBooking(booking.getId(), updatedRequest);
+        BookingResponse response = bookingServiceImpl.updateBooking(booking.getId(), request);
 
         assertThat(response).isNotNull();
-        assertThat(response.getUserId()).isEqualTo(updatedRequest.getUserId());
-        assertThat(response.getItemId()).isEqualTo(updatedRequest.getItemId());
-        assertThat(response.getBookingDate()).isEqualTo(updatedRequest.getBookingDate());
+        assertThat(booking.getUserId()).isEqualTo(request.getUserId());
+        assertThat(booking.getItemId()).isEqualTo(request.getItemId());
 
         verify(bookingRepository).save(any(Booking.class));
         verify(bookingProducer).sendEvent(bookingEvent);
     }
 
     @Test
-    void cancelBooking_ShouldSetStatusToCancelled() throws JsonProcessingException {
-        when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(booking)).thenReturn(booking);
-        when(bookingEventMapper.toCanceledEvent(booking)).thenReturn(bookingEvent);
+    void givenBooking_whenUpdateStatusToCancelled_thenStatusUpdated() throws JsonProcessingException {
+        BookingUpdateRequest request = BookingUpdateRequest.builder()
+                .bookingStatus(BookingStatus.CANCELLED).build();
 
-        bookingServiceImpl.cancelBooking(booking.getId());
+        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any())).thenReturn(booking);
+        when(bookingEventMapper.toCanceledEvent(any())).thenReturn(bookingEvent);
+
+        bookingServiceImpl.updateBooking(booking.getId(), request);
 
         assertThat(booking.getBookingStatus()).isEqualTo(BookingStatus.CANCELLED);
 
@@ -155,26 +143,32 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    void givenAlreadyCancelledBooking_whenCancelBooking_thenThrowsIllegalStateException() throws JsonProcessingException {
+    void givenAlreadyCancelledBooking_whenUpdateStatusToCancelled_thenThrowsException() throws JsonProcessingException {
         booking.setBookingStatus(BookingStatus.CANCELLED);
+
+        BookingUpdateRequest request = BookingUpdateRequest.builder()
+                .bookingStatus(BookingStatus.CANCELLED).build();
+
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
 
-        assertThatThrownBy(() -> bookingServiceImpl.cancelBooking(booking.getId()))
+        assertThatThrownBy(() -> bookingServiceImpl.updateBooking(booking.getId(), request))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Booking is already cancelled");
+                .hasMessage("Cannot modify cancelled booking");
 
         verify(bookingRepository, never()).save(any());
         verify(bookingProducer, never()).sendEvent(any());
     }
 
     @Test
-    void givenPendingBooking_whenConfirmBooking_thenStatusIsConfirmedAndEventSent() throws JsonProcessingException {
+    void givenPendingBooking_whenUpdateStatusToConfirmed_thenStatusUpdatedAndEventSent() throws JsonProcessingException {
+        BookingUpdateRequest request = BookingUpdateRequest.builder().bookingStatus(BookingStatus.CONFIRMED).build();
+
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
         when(bookingEventMapper.toConfirmedEvent(booking)).thenReturn(bookingEvent);
         when(bookingRepository.save(any())).thenReturn(booking);
         when(bookingMapper.toBookingResponse(any(Booking.class))).thenReturn(bookingResponse);
 
-        BookingResponse response = bookingServiceImpl.confirmBooking(booking.getId());
+        BookingResponse response = bookingServiceImpl.updateBooking(booking.getId(), request);
         response.setStatus(booking.getBookingStatus());
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
@@ -185,26 +179,23 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    void givenNonPendingBooking_whenConfirmBooking_thenThrowsIllegalStateException() {
+    void givenNonPendingBooking_whenUpdateStatusToConfirmed_thenThrowsException() {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
+        BookingUpdateRequest request = BookingUpdateRequest.builder().bookingStatus(BookingStatus.CONFIRMED).build();
+
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
 
-        assertThatThrownBy(() -> bookingServiceImpl.confirmBooking(booking.getId()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Only pending bookings can be confirmed");
-
-        booking.setBookingStatus(BookingStatus.CANCELLED);
-
-        assertThatThrownBy(() -> bookingServiceImpl.confirmBooking(booking.getId()))
+        assertThatThrownBy(() -> bookingServiceImpl.updateBooking(booking.getId(), request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Only pending bookings can be confirmed");
     }
 
     @Test
-    void givenNonExistentBooking_whenConfirmBooking_thenThrowsEntityNotFoundException() {
+    void givenNonExistentBooking_whenUpdateBooking_thenThrowsEntityNotFoundException() {
+        BookingUpdateRequest request = BookingUpdateRequest.builder().bookingStatus(BookingStatus.CONFIRMED).build();
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(()-> bookingServiceImpl.confirmBooking(booking.getId()))
+        assertThatThrownBy(() -> bookingServiceImpl.updateBooking(booking.getId(), request))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 

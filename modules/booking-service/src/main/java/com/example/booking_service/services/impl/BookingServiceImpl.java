@@ -3,6 +3,7 @@ package com.example.booking_service.services.impl;
 import com.example.booking_service.dtos.BookingRequest;
 import com.example.booking_service.dtos.BookingResponse;
 import com.example.booking_service.dtos.BookingSearchParams;
+import com.example.booking_service.dtos.BookingUpdateRequest;
 import com.example.booking_service.kafka.BookingProducer;
 import com.example.booking_service.mapper.BookingEventMapper;
 import com.example.booking_service.mapper.BookingMapper;
@@ -44,7 +45,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
 
         Booking savedBooking = bookingRepository.save(booking);
-        sendKafkaEventSafely(()-> {
+        sendKafkaEventSafely(() -> {
             try {
                 bookingProducer.sendEvent(bookingEventMapper.toCreatedEvent(savedBooking));
             } catch (JsonProcessingException e) {
@@ -55,29 +56,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
-    public void cancelBooking(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
-
-        if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new IllegalStateException("Booking is already cancelled");
-        }
-
-        booking.setBookingStatus(BookingStatus.CANCELLED);
-        booking.setUpdatedAt(LocalDateTime.now());
-
-        bookingRepository.save(booking);
-
-        sendKafkaEventSafely(()-> {
-            try {
-                bookingProducer.sendEvent(bookingEventMapper.toCanceledEvent(booking));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public List<BookingResponse> getBookingByUserId(Long userId) {
         return bookingRepository.findByUserId(userId).stream().map(bookingMapper::toBookingResponse).toList();
@@ -85,59 +63,61 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingResponse updateBooking(Long bookingId, BookingRequest bookingRequest) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
+    public BookingResponse updateBooking(Long id, BookingUpdateRequest request) {
+        Booking booking = bookingRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot update a cancelled booking");
+            throw new IllegalStateException("Cannot modify cancelled booking");
         }
-
-        booking.setItemId(bookingRequest.getItemId());
-        booking.setUserId(bookingRequest.getUserId());
-        booking.setBookingDate(bookingRequest.getBookingDate());
-        booking.setUpdatedAt(LocalDateTime.now());
-
-        sendKafkaEventSafely(()-> {
-            try {
-                bookingProducer.sendEvent(bookingEventMapper.toUpdatedEvent(booking));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        return bookingMapper.toBookingResponse(bookingRepository.save(booking));
-    }
-
-    @Override
-    @Transactional
-    public BookingResponse confirmBooking(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(EntityNotFoundException::new);
-
-        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+        if (request.getBookingStatus() == BookingStatus.CONFIRMED && booking.getBookingStatus() != BookingStatus.PENDING) {
             throw new IllegalStateException("Only pending bookings can be confirmed");
         }
-        booking.setBookingStatus(BookingStatus.CONFIRMED);
-        booking.setUpdatedAt(LocalDateTime.now());
 
-        sendKafkaEventSafely(()->{
+        applyUpdates(booking, request);
+        Booking saved = bookingRepository.save(booking);
+
+        sendEvent(booking, request);
+
+        return bookingMapper.toBookingResponse(saved);
+
+    }
+
+    private void applyUpdates(Booking booking, BookingUpdateRequest request) {
+        if (request.getUserId() != null) {
+            booking.setUserId(request.getUserId());
+        }
+        if (request.getItemId() != null) {
+            booking.setItemId(request.getItemId());
+        }
+        if (request.getBookingDate() != null) {
+            booking.setBookingDate(request.getBookingDate());
+        }
+        if (request.getBookingStatus() != null) {
+            booking.setBookingStatus(request.getBookingStatus());
+        }
+        booking.setUpdatedAt(LocalDateTime.now());
+    }
+
+    private void sendEvent(Booking booking, BookingUpdateRequest request) {
+        sendKafkaEventSafely(() -> {
             try {
-                bookingProducer.sendEvent(bookingEventMapper.toConfirmedEvent(booking));
+                if (request.getBookingStatus() == BookingStatus.CONFIRMED) {
+                    bookingProducer.sendEvent(bookingEventMapper.toConfirmedEvent(booking));
+                } else if (request.getBookingStatus() == BookingStatus.CANCELLED) {
+                    bookingProducer.sendEvent(bookingEventMapper.toCanceledEvent(booking));
+                } else {
+                    bookingProducer.sendEvent(bookingEventMapper.toUpdatedEvent(booking));
+                }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
         });
-
-        return bookingMapper.toBookingResponse(bookingRepository.save(booking));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<BookingResponse> searchBookings(BookingSearchParams bookingSearchParams, Pageable pageable) {
-        Specification<Booking> spec = Specification
-                .<Booking>where(SpecificationUtils.equal("userId", bookingSearchParams.getUserId()))
-                .and(SpecificationUtils.equal("itemId", bookingSearchParams.getItemId()))
-                .and(SpecificationUtils.equal("bookingStatus", bookingSearchParams.getStatus()))
-                .and(SpecificationUtils.between("bookingDate", bookingSearchParams.getFromDate(), bookingSearchParams.getToDate()));
+        Specification<Booking> spec = Specification.<Booking>where(SpecificationUtils.equal("userId", bookingSearchParams.getUserId())).and(SpecificationUtils.equal("itemId", bookingSearchParams.getItemId())).and(SpecificationUtils.equal("bookingStatus", bookingSearchParams.getStatus())).and(SpecificationUtils.between("bookingDate", bookingSearchParams.getFromDate(), bookingSearchParams.getToDate()));
 
         return bookingRepository.findAll(spec, pageable).map(bookingMapper::toBookingResponse);
     }
@@ -145,7 +125,7 @@ public class BookingServiceImpl implements BookingService {
     @CircuitBreaker(name = "bookingService")
     @Retry(name = "bookingService")
     @RateLimiter(name = "bookingService")
-    private void sendKafkaEventSafely(Runnable runnable){
+    private void sendKafkaEventSafely(Runnable runnable) {
         CompletableFuture.runAsync(runnable);
     }
 }

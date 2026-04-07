@@ -77,7 +77,7 @@ public class ItemController {
     @PutMapping("/{itemId}")
     public ResponseEntity<ItemResponse> updateItem(
             @Parameter(description = "ID of the item to update", example = "1")
-            @PathVariable @Valid Long itemId, @RequestBody ItemRequest itemRequest) {
+            @PathVariable Long itemId, @RequestBody ItemRequest itemRequest) {
         return new ResponseEntity<>(itemService.updateItem(itemId,itemRequest),HttpStatus.OK);
     }
 
