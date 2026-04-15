@@ -13,7 +13,7 @@ import java.util.List;
 public interface BookingService {
     BookingResponse createBooking(BookingRequest bookingRequest);
 
-    List<BookingResponse> getBookingByUserId(Long userId);
+    BookingResponse getBookingById(Long userId);
 
     BookingResponse updateBooking(Long bookingId, BookingUpdateRequest request);
 

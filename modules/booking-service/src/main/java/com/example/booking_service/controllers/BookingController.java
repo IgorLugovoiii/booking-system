@@ -37,29 +37,28 @@ public class BookingController {
         return new ResponseEntity<>(bookingService.createBooking(bookingRequest), HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Return all bookings by user id")
+    @Operation(summary = "Return booking by certain id")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Booking by user id found"),
+            @ApiResponse(responseCode = "200", description = "Booking found"),
             @ApiResponse(responseCode = "403", description = "Unauthorized"),
             @ApiResponse(responseCode = "404", description = "Booking not found")
     })
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<BookingResponse>> getUserBookings(
-            @Parameter(description = "ID of the user to find all his bookings", example = "1")
-            @PathVariable Long userId) {
-        return new ResponseEntity<>(bookingService.getBookingByUserId(userId), HttpStatus.OK);
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<BookingResponse> getBookingById(
+            @Parameter(description = "ID of booking", example = "1")
+            @PathVariable("bookingId") Long bookingId) {
+        return new ResponseEntity<>(bookingService.getBookingById(bookingId), HttpStatus.OK);
     }
 
     @Operation(description = "Update booking by id")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User created"),
+            @ApiResponse(responseCode = "200", description = "Booking updated"),
             @ApiResponse(responseCode = "403", description = "Unauthorized"),
-            @ApiResponse(responseCode = "400", description = "Invalid credentials")
     })
     @PatchMapping("/{bookingId}")
     public ResponseEntity<BookingResponse> updateBooking(
             @Parameter(description = "ID of the booking to update", example = "1")
-            @PathVariable Long bookingId, @RequestBody BookingUpdateRequest request) {
+            @PathVariable("bookingId") Long bookingId, @RequestBody BookingUpdateRequest request) {
         return new ResponseEntity<>(bookingService.updateBooking(bookingId, request), HttpStatus.OK);
     }
 

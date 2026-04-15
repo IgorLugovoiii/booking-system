@@ -57,8 +57,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingResponse> getBookingByUserId(Long userId) {
-        return bookingRepository.findByUserId(userId).stream().map(bookingMapper::toBookingResponse).toList();
+    public BookingResponse getBookingById(Long id) {
+        return bookingMapper.toBookingResponse(bookingRepository.findById(id).orElseThrow());
     }
 
     @Override

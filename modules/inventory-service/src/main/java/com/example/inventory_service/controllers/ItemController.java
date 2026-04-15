@@ -53,7 +53,7 @@ public class ItemController {
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemResponse> findItemById(
             @Parameter(description = "ID of the item to find", example = "1")
-            @PathVariable Long itemId) {
+            @PathVariable("itemId") Long itemId) {
         return new ResponseEntity<>(itemService.findById(itemId),HttpStatus.OK);
     }
 
@@ -76,7 +76,7 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ResponseEntity<ItemResponse> updateItem(
             @Parameter(description = "ID of the item to update", example = "1")
-            @PathVariable Long itemId, @RequestBody @Valid ItemRequest itemRequest) {
+            @PathVariable("itemId") Long itemId, @RequestBody @Valid ItemRequest itemRequest) {
         return new ResponseEntity<>(itemService.updateItem(itemId,itemRequest),HttpStatus.OK);
     }
 
@@ -89,7 +89,7 @@ public class ItemController {
     @DeleteMapping("/{itemId}")
     public ResponseEntity<Void> deleteItemById(
             @Parameter(description = "ID of the item to delete", example = "1")
-            @PathVariable Long itemId) {
+            @PathVariable("itemId") Long itemId) {
         itemService.deleteById(itemId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

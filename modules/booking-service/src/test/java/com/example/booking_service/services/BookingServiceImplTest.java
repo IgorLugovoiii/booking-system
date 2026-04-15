@@ -21,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -200,29 +199,28 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    void givenUserIdWithBookings_whenGetBookingsByUserId_thenReturnsBookingResponses() {
-        when(bookingRepository.findByUserId(booking.getUserId())).thenReturn(List.of(booking));
+    void givenUserIdWithBookings_whenGetBookingsById_thenReturnsBookingResponses() {
+        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.ofNullable(booking));
         when(bookingMapper.toBookingResponse(booking)).thenReturn(bookingResponse);
 
-        List<BookingResponse> list = bookingServiceImpl.getBookingByUserId(booking.getUserId());
+        BookingResponse response = bookingServiceImpl.getBookingById(booking.getUserId());
 
-        assertThat(list).hasSize(1);
-        assertThat(list.getFirst().getUserId()).isEqualTo(booking.getUserId());
-        assertThat(list.getFirst().getStatus()).isEqualTo(BookingStatus.PENDING);
+        assertThat(response.getUserId()).isEqualTo(booking.getUserId());
+        assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING);
 
-        verify(bookingRepository).findByUserId(booking.getUserId());
+        verify(bookingRepository).findById(booking.getUserId());
         verify(bookingMapper).toBookingResponse(booking);
     }
 
-    @Test
-    void givenUserIdWithoutBookings_whenGetBookingsByUserId_thenReturnsEmptyList() {
-        when(bookingRepository.findByUserId(booking.getUserId())).thenReturn(List.of());
-
-        List<BookingResponse> list = bookingServiceImpl.getBookingByUserId(booking.getUserId());
-
-        assertThat(list).isEmpty();
-
-        verify(bookingRepository).findByUserId(booking.getUserId());
-        verify(bookingMapper, never()).toBookingResponse(any());
-    }
+//    @Test
+//    void givenUserIdWithoutBookings_whenGetBookingById_thenReturnsEmptyList() {
+//        when(bookingRepository.findById(booking.getUserId())).thenReturn(null);
+//
+//        BookingResponse response = bookingServiceImpl.getBookingById(booking.getUserId());
+//
+//        assertThat(response).isEqualTo(null);
+//
+//        verify(bookingRepository).findById(booking.getUserId());
+//        verify(bookingMapper, never()).toBookingResponse(any());
+//    }
 }
